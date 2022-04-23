@@ -21,6 +21,4 @@ spec:
     service:
       main:
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.200
-        annotations:
-          metallb.universe.tf/allow-shared-ip: pihole-svc
+        loadBalancerIP: 192.168.1.102
