@@ -21,6 +21,7 @@ spec:
       enabled: true
       annotations:
         kubernetes.io/ingress.class: nginx
+      ingressClassName: nginx
     serviceWeb:
       loadBalancerIP: 10.64.1.1
       type: LoadBalancer
