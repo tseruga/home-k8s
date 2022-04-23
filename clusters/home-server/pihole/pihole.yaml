@@ -19,7 +19,6 @@ spec:
       enabled: true
     ingress:
       enabled: true
-      ingressClassName: public
       annotations:
         kubernetes.io/ingress.class: public
     serviceWeb:
