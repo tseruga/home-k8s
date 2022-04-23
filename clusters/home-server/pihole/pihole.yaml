@@ -28,7 +28,7 @@ spec:
         port: 8080
       https:
         port: 8443
-      annotations: {}
+      annotations:
         metallb.universe.tf/address-pool: network-services
         metallb.universe.tf/allow-shared-ip: pihole-svc
     serviceDns:
