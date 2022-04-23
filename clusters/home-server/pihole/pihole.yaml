@@ -22,7 +22,7 @@ spec:
     serviceWeb:
       loadBalancerIP: 192.168.2.100
       type: LoadBalancer
-      externalTrafficPolicy: Cluster
+      externalTrafficPolicy: Local
       http:
         port: 8080
       https:
@@ -32,7 +32,8 @@ spec:
     serviceDns:
       loadBalancerIP: 192.168.2.101
       type: LoadBalancer
-      externalTrafficPolicy: Cluster
+      externalTrafficPolicy: Local
       annotations:
         metallb.universe.tf/address-pool: network-services
+        metallb.universe.tf/allow-shared-ip: pihole-svc
     adminPassword: admin
