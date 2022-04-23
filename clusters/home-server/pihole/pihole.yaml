@@ -23,11 +23,14 @@ spec:
         kubernetes.io/ingress.class: nginx
     serviceWeb:
       loadBalancerIP: 10.64.1.1
-      type: ClusterIP
+      type: LoadBalancer
       http:
         port: 8080
       https:
         port: 8443
+      annotations: {}
+        metallb.universe.tf/address-pool: network-services
+        metallb.universe.tf/allow-shared-ip: pihole-svc
     serviceDns:
       loadBalancerIP: 10.64.1.2
       type: LoadBalancer
