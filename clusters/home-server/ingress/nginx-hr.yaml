@@ -7,10 +7,10 @@ metadata:
 spec:
   chart:
     spec:
-      chart: nginx-stable/nginx-ingress
+      chart: ingress-nginx/ingress-nginx
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
-        name: nginx-stable
-      version: 0.4.1
+        name: ingress-nginx
+      version: 4.1.0
   interval: 1m0s
