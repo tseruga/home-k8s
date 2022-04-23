@@ -13,4 +13,4 @@ spec:
         kind: HelmRepository
         name: ingress-nginx
       version: 4.1.0
-  interval: 1m0s
+  interval: 1m1s
