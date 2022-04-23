@@ -17,5 +17,5 @@ spec:
   values:
     ingress:
       main:
-        enabled: True
-        
+        enabled: true
+      ingressClassName: public
