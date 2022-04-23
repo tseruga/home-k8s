@@ -30,7 +30,7 @@ spec:
       annotations:
         metallb.universe.tf/address-pool: network-services
     serviceDns:
-      loadBalancerIP: 192.168.1.101
+      loadBalancerIP: 192.168.2.101
       type: LoadBalancer
       externalTrafficPolicy: Cluster
       annotations:
