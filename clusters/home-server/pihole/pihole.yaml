@@ -2,7 +2,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: pihole2
+  name: pihole
   namespace: pihole
 spec:
   chart:
