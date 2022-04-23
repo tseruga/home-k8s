@@ -18,5 +18,3 @@ spec:
     ingress:
       main:
         enabled: true
-    metrics:
-      enabled: true
