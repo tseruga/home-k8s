@@ -13,7 +13,7 @@ spec:
         kind: HelmRepository
         name: mojo2600
       version: 2.5.8
-  interval: 1m0s
+  interval: 1m1s
   values:
     persistentVolumeClaim:
       enabled: true
