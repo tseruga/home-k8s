@@ -26,11 +26,10 @@ spec:
         port: 8080
       https:
         port: 8443
-      annotations:
-        metallb.universe.tf/allow-shared-ip: True
     serviceDns:
       loadBalancerIP: 10.64.1.2
       type: LoadBalancer
       annotations:
-        metallb.universe.tf/allow-shared-ip: True
+        metallb.universe.tf/address-pool: network-services
+        metallb.universe.tf/allow-shared-ip: pihole-svc
     adminPassword: admin
