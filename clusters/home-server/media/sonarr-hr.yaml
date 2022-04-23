@@ -14,3 +14,8 @@ spec:
         name: k8s-at-home
       version: 16.1.0
   interval: 1m0s
+  values:
+    ingress:
+      main:
+        enabled: True
+        
