@@ -20,6 +20,8 @@ spec:
     ingress:
       enabled: true
       ingressClassName: public
+      annotations:
+        kubernetes.io/ingress.class: public
     serviceWeb:
       loadBalancerIP: 10.64.1.1
       type: LoadBalancer
