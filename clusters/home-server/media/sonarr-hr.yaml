@@ -16,6 +16,5 @@ spec:
   interval: 1m0s
   values:
     ingress:
-      main:
-        enabled: true
+      enabled: true
       ingressClassName: public
