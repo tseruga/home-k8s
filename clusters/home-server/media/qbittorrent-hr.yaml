@@ -22,3 +22,8 @@ spec:
         externalTrafficPolicy: Local
     settings:
       automaticPortSetup: True
+    persistence:
+      content:
+        enabled: true
+        type: pvc
+        existingClaim: content-pvc
