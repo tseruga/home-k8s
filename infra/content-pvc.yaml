@@ -4,6 +4,7 @@ metadata:
   name: content-pvc
   namespace: media
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem

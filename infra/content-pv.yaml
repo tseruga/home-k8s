@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: local-storage
+  storageClassName: manual
   local:
     path: /mnt/sda
   nodeAffinity:
