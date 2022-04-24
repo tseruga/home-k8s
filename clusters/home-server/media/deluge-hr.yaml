@@ -2,17 +2,17 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: qbittorrent
+  name: deluge
   namespace: media
 spec:
   chart:
     spec:
-      chart: qbittorrent
+      chart: deluge
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
         name: k8s-at-home
-      version: 13.3.0
+      version: 5.2.0
   interval: 1m0s
   values:
     service:
