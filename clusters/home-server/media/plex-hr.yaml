@@ -25,5 +25,3 @@ spec:
         enabled: true
         type: pvc
         existingClaim: content-pvc
-      config:
-        enabled: true
