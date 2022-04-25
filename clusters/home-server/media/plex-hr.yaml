@@ -22,3 +22,13 @@ spec:
         externalTrafficPolicy: Local
     env:
       allowedNetworks: 192.168.0.1/8
+    persistence:
+      content:
+        enabled: true
+        type: pvc
+        existingClaim: content-pvc
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
