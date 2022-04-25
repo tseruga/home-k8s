@@ -7,12 +7,3 @@ metadata:
 spec:
   interval: 1m0s
   url: https://k8s-at-home.com/charts/
----
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: utkuozdemir
-  namespace: media
-spec:
-  interval: 1m0s
-  url: https://utkuozdemir.org/helm-charts
