@@ -27,6 +27,3 @@ spec:
         existingClaim: content-pvc
       config:
         enabled: true
-        type: pvc
-        accessMode: ReadWriteOnce
-        size: 1Gi
