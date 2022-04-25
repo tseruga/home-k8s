@@ -2,27 +2,27 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: plex
+  name: radarr
   namespace: media
 spec:
   chart:
     spec:
-      chart: plex
+      chart: radarr
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
         name: k8s-at-home
-      version: 6.2.2
+      version: 16.1.0
   interval: 1m0s
   values:
+    ingress:
+      main:
+        enabled: true
     service:
       main:
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.210
+        loadBalancerIP: 192.168.1.211
         externalTrafficPolicy: Local
-    env:
-      ALLOWED_NETWORKS: 192.168.0.1/8
-      PLEX_CLAIM: claim-AUQjT3o4wumxyvHsPuts
     persistence:
       content:
         enabled: true
