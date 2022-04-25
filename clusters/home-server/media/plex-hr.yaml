@@ -22,6 +22,7 @@ spec:
         externalTrafficPolicy: Local
     env:
       allowedNetworks: 192.168.0.1/8
+      PLEX_CLAIM: claim-AUQjT3o4wumxyvHsPuts
     persistence:
       content:
         enabled: true
