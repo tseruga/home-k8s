@@ -17,5 +17,3 @@ spec:
   values:
     service:
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.209
-        externalTrafficPolicy: Local
