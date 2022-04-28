@@ -7,11 +7,11 @@ metadata:
 spec:
   chart:
     spec:
-      chart: assetto-server-manager
+      chart: ./charts/assetto-server-manager
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: GitRepository
-        path: ./charts/assetto-server-manager
+        name: assetto-server-manager
         namespace: flux-system
   interval: 1m0s
   values:
