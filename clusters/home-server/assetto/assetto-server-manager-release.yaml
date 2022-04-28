@@ -1,0 +1,36 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: assetto-server-manager
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: assetto-server-manager
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        name: ""
+  interval: 1m0s
+  values:
+    env:
+      RPC_SECRET: ChangemeNow
+    image:
+      pullPolicy: IfNotPresent
+      repository: seejy/assetto-server-manager
+      tag: latest
+    persistence:
+      config:
+        accessMode: ReadWriteOnce
+        enabled: true
+        size: 1Gi
+        type: pvc
+    service:
+      main:
+        externalTrafficPolicy: Local
+        loadBalancerIP: 192.168.1.212
+        ports:
+          http:
+            port: 8772
+        type: LoadBalancer
+

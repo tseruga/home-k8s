@@ -1,0 +1,25 @@
+image:
+  repository: seejy/assetto-server-manager
+  tag: latest
+  pullPolicy: IfNotPresent
+
+  # -- environment variables. See more environment variables in the [Aria2c documentation](https://github.com/P3TERX/Aria2-Pro-Docker).
+  # @default -- See below
+env:
+  RPC_SECRET: ChangemeNow  # Example
+
+service:
+  main:
+    ports:
+      http: 
+        port: 8772
+    type: LoadBalancer
+    loadBalancerIP: 192.168.1.212
+    externalTrafficPolicy: Local
+
+persistence:
+  config:
+    enabled: true
+    type: pvc
+    accessMode: ReadWriteOnce
+    size: 1Gi
