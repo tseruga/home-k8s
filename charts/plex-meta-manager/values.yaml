@@ -1,0 +1,11 @@
+image:
+  repository: meisnate12/plex-meta-manager
+  tag: latest
+  pullPolicy: IfNotPresent
+
+persistence:
+  config:
+    enabled: true
+    type: pvc
+    accessMode: ReadWriteOnce
+    size: 1Gi

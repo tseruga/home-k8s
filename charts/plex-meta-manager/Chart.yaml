@@ -1,0 +1,8 @@
+apiVersion: v2
+appVersion: latest
+name: plex-meta-manager
+version: 1.2.0
+dependencies:
+  - name: common
+    repository: https://library-charts.k8s-at-home.com
+    version: 4.3.0
