@@ -10,7 +10,9 @@ spec:
       chart: assetto-server-manager
       reconcileStrategy: ChartVersion
       sourceRef:
-        name: ""
+        kind: GitRepository
+        name: assetto-server-manager
+        namespace: assetto
   interval: 1m0s
   values:
     env:
