@@ -8,12 +8,10 @@ spec:
   chart:
     spec:
       chart: ./charts/assetto-server-manager
-      reconcileStrategy: ChartVersion
       sourceRef:
         kind: GitRepository
-        name: assetto-server-manager
+        name: github-repo
         namespace: flux-system
-      path: ./charts/assetto-server-manager
   interval: 1m0s
   values:
     env:
