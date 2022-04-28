@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: assetto-server-manager
-  namespace: flux-system
+  namespace: assetto
 spec:
   chart:
     spec:
