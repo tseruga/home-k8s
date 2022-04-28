@@ -11,7 +11,7 @@ spec:
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: GitRepository
-        name: assetto-server-manager
+        path: ./charts/assetto-server-manager
         namespace: assetto
   interval: 1m0s
   values:
