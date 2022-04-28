@@ -13,6 +13,7 @@ spec:
         kind: GitRepository
         name: assetto-server-manager
         namespace: flux-system
+      path: ./charts/assetto-server-manager
   interval: 1m0s
   values:
     env:
