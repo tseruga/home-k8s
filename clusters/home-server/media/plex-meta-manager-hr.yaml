@@ -13,3 +13,9 @@ spec:
         name: github-repo
         namespace: flux-system
   interval: 1m0s
+  values:
+    service:
+      main:
+        ports:
+          http:
+            port: 8080
