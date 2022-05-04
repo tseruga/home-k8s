@@ -30,7 +30,7 @@ spec:
         type: LoadBalancer
 
     persistence:
-      asm-config:
+      config:
         enabled: true
         mountPath: /home/assetto/server-manager/assetto/config.yml
         subPath: config.yml
