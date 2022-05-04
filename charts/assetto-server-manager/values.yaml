@@ -1,6 +1,6 @@
 image:
   repository: seejy/assetto-server-manager
-  tag: latest
+  tag: v1.7.9
   pullPolicy: IfNotPresent
 
   # -- environment variables. See more environment variables in the [Aria2c documentation](https://github.com/P3TERX/Aria2-Pro-Docker).
