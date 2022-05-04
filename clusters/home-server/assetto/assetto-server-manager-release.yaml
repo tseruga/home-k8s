@@ -14,18 +14,15 @@ spec:
         namespace: flux-system
   interval: 1m0s
   values:
+  
     env:
       RPC_SECRET: ChangemeNow
+
     image:
       pullPolicy: IfNotPresent
       repository: seejy/assetto-server-manager
       tag: latest
-    persistence:
-      config:
-        accessMode: ReadWriteOnce
-        enabled: true
-        size: 1Gi
-        type: pvc
+
     service:
       main:
         externalTrafficPolicy: Local
@@ -35,3 +32,12 @@ spec:
             port: 8772
         type: LoadBalancer
 
+    persistence:
+      asm-config:
+        enabled: true
+        mountPath: /home/assetto/server-manager/assetto/config.yml
+        subPath: config.yml
+        type: custom
+        volumeSpec:
+          configMap:
+            name: assetto-server-manager-config
