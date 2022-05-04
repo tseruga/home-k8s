@@ -19,13 +19,13 @@ service:
 
 persistence:
   asm-config:
-    enabled: "true"
-    mountPath: "/home/assetto/server-manager/assetto/"
-    subPath: "config.yml"
-    type: "custom"
+    enabled: true
+    mountPath: /home/assetto/server-manager/assetto/
+    subPath: config.yml
+    type: custom
     volumeSpec:
       configMap:
-        name: {{ include "common.names.fullname" . }}-config
+        name: assetto-server-manager-config
 
 
   
