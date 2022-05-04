@@ -3,10 +3,6 @@ image:
   tag: v1.7.9
   pullPolicy: IfNotPresent
 
-  # -- environment variables. See more environment variables in the [Aria2c documentation](https://github.com/P3TERX/Aria2-Pro-Docker).
-  # @default -- See below
-env:
-  RPC_SECRET: ChangemeNow  # Example
 
 service:
   main:
@@ -18,4 +14,12 @@ service:
     externalTrafficPolicy: Local
 
 
-  
+persistence:
+  config:
+    enabled: true
+    mountPath: /home/assetto/server-manager/assetto/config.yml
+    subPath: config.yml
+    type: custom
+    volumeSpec:
+      configMap:
+        name: assetto-server-manager-config

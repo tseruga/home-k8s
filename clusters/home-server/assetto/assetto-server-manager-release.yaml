@@ -13,14 +13,3 @@ spec:
         name: github-repo
         namespace: flux-system
   interval: 1m0s
-  values:
-
-    persistence:
-      config:
-        enabled: true
-        mountPath: /home/assetto/server-manager/assetto/config.yml
-        subPath: config.yml
-        type: custom
-        volumeSpec:
-          configMap:
-            name: assetto-server-manager-config
