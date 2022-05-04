@@ -18,8 +18,14 @@ service:
     externalTrafficPolicy: Local
 
 persistence:
-  config:
-    enabled: true
-    type: pvc
-    accessMode: ReadWriteOnce
-    size: 1Gi
+  asm-config:
+    enabled: "true"
+    mountPath: "/home/assetto/server-manager/assetto/"
+    subPath: "config.yml"
+    type: "custom"
+    volumeSpec:
+      configMap:
+        name: {{ include "common.names.fullname" . }}-config
+
+
+  
