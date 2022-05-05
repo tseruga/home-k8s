@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: wireguard
-  namespace: media
+  namespace: wireguard
 spec:
   chart:
     spec:
@@ -22,3 +22,13 @@ spec:
       main:
         type: LoadBalancer
         externalTrafficPolicy: Local
+    persistence:
+      config:
+        enabled: "true"
+        mountPath: "/etc/wireguard/wg0.conf"
+        subPath: "wg0.conf"
+        type: "custom"
+        volumeSpec:
+          secret:
+            defaultMode: 0600
+            secretName: wireguard-config
