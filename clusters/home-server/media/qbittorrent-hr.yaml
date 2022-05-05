@@ -1,0 +1,76 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  chart:
+    spec:
+      chart: qbittorrent
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: k8s-at-home
+      version: 13.4.2
+  interval: 1m0s
+  values:
+    ingress:
+      main:
+        enabled: true
+    service:
+      main:
+        type: LoadBalancer
+        loadBalancerIP: 192.168.1.220
+        externalTrafficPolicy: Local
+    persistence:
+      content:
+        enabled: true
+        type: pvc
+        existingClaim: content-pvc
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
+      shared:
+        enabled: true
+        type: emptyDir
+        mountPath: /shared
+    env:
+      WAIT_FOR_VPN: "true"
+    addons:
+      vpn:
+        enabled: true
+        # This Should be set to `wireguard`. This will set the add-on to use the default settings for Wireguard based connections.
+        type: wireguard
+
+        # If the podSecurityContext is set to run as a different user, make sure to run the Wireguard container as UID/GID 568.
+        # This is required for it to be able to read certain configuration files.
+        securityContext:
+          runAsUser: 568
+          runAsGroup: 568
+
+        env:
+          # Enable a killswitch that kills all trafic when the VPN is not connected
+          KILLSWITCH: "true"
+
+        # The wireguard configuration file provided by your VPN provider goes here.
+        #
+        # Set AllowedIPs to 0.0.0.0/0 to route all traffic through the VPN.
+        #
+        # Pay close attention to the PostUp and PreDown lines. They must be added if you wish to run a script when the connection
+        # is opened / closed.
+        configFileSecret: wireguard-config
+
+        # The scripts that get run when the VPN connection opens/closes are defined here.
+        # The default scripts will write a string to represent the current connection state to a file.
+        # Our qBittorrent image has a feature that can wait for this file to contain the word 'connected' before actually starting the application.
+        scripts:
+          up: |-
+            #!/bin/bash
+            echo "connected" > /shared/vpnstatus
+
+          down: |-
+            #!/bin/bash
+            echo "disconnected" > /shared/vpnstatus
