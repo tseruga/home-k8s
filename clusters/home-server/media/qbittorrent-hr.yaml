@@ -60,6 +60,7 @@ spec:
         # The scripts that get run when the VPN connection opens/closes are defined here.
         # The default scripts will write a string to represent the current connection state to a file.
         # Our qBittorrent image has a feature that can wait for this file to contain the word 'connected' before actually starting the application.
+        
         scripts:
           up: |-
             #!/bin/bash
@@ -68,3 +69,4 @@ spec:
           down: |-
             #!/bin/bash
             echo "disconnected" > /shared/vpnstatus
+        
