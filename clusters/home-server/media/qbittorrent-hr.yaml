@@ -37,8 +37,6 @@ spec:
         enabled: true
         type: emptyDir
         mountPath: /shared
-    env:
-      WAIT_FOR_VPN: "true"
     addons:
       vpn:
         enabled: true
@@ -50,10 +48,6 @@ spec:
         securityContext:
           runAsUser: 568
           runAsGroup: 568
-
-        env:
-          # Enable a killswitch that kills all trafic when the VPN is not connected
-          KILLSWITCH: "true"
 
         # The wireguard configuration file provided by your VPN provider goes here.
         #
