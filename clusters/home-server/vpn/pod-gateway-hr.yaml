@@ -6,7 +6,7 @@ metadata:
   namespace: vpn
   labels:
 spec:
-  interval: 1m
+  interval: 5m
   chart:
     spec:
       chart: pod-gateway
@@ -15,7 +15,7 @@ spec:
         kind: HelmRepository
         name: k8s-at-home-charts
         namespace: flux-system
-      interval: 1m
+      interval: 5m
 
   # See https://github.com/k8s-at-home/charts/blob/master/charts/pod-gateway/values.yaml
   values:
