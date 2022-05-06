@@ -20,7 +20,7 @@ spec:
         enabled: true
         ports:
           http:
-            port: 56349
+            port: 8080
     service:
       main:
         type: LoadBalancer
