@@ -21,8 +21,8 @@ spec:
   values:
     routed_namespaces:
       - downloads
-  settings:
-    VPN_INTERFACE: wg0
-    VXLAN_ID: 43
-    NOT_ROUTED_TO_GATEWAY_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
-    VPN_LOCAL_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
+    settings:
+      VPN_INTERFACE: wg0
+      VXLAN_ID: 43
+      NOT_ROUTED_TO_GATEWAY_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
+      VPN_LOCAL_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
