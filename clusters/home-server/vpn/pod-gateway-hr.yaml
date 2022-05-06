@@ -26,15 +26,15 @@ spec:
       VXLAN_ID: 43
       NOT_ROUTED_TO_GATEWAY_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
       VPN_LOCAL_CIDRS: "172.16.0.0/12 10.0.0.0/8 192.168.0.0/16"
-#   addons:
-#       vpn:
-#         enabled: true
-#         # This Should be set to `openvpn`. This will set the add-on to use the default settings for OpenVPN based connections.
-#         type: openvpn
+  addons:
+      vpn:
+        enabled: true
+        # This Should be set to `openvpn`. This will set the add-on to use the default settings for OpenVPN based connections.
+        type: openvpn
 
-#         openvpn:
-#           # This gets read by the Helm chart. The default OpenVPN image reads this and uses it to connect to the VPN provider.
-#           authSecret: openvpn-auth
+        openvpn:
+          # This gets read by the Helm chart. The default OpenVPN image reads this and uses it to connect to the VPN provider.
+          authSecret: openvpn-auth
 
 #         # If the podSecurityContext is set to run as a different user, make sure to run the OpenVPN container as root. 
 #         # This is required for it to be able to read certain configuration files. 
@@ -54,7 +54,7 @@ spec:
 #         #
 #         # Pay close attention to the last 3 lines in this file. They must be added if you wish to run a script when the connection
 #         # is opened / closed.
-#         configFileSecret: openvpn-config
+        configFileSecret: openvpn-config
 
 #         # The scripts that get run when the VPN connection opens/closes are defined here.
 #         # The default scripts will write a string to represent the current connection state to a file.
