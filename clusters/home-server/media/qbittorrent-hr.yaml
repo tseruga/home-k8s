@@ -15,8 +15,8 @@ spec:
       version: 13.4.2
   interval: 1m0s
   values:
-    podSecurityContext:
-      allowPrivilegeEscalation: false
+    securityContext:
+      runAsGroup: 0
       runAsUser: 0
     ingress:
       main:
