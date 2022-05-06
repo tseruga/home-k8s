@@ -17,8 +17,8 @@ spec:
         app: terminal
     spec:
       containers:
-      - name: alpine
-        image: alpine
+      - name: ubuntu
+        image: ubuntu
         command:
         - /bin/sh
         - -c
