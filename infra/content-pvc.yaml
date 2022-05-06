@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: content-pvc
-  namespace: media
+  namespace: downloads
 spec:
   storageClassName: manual
   accessModes:
