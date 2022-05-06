@@ -1,25 +1,25 @@
-# ---
-# apiVersion: helm.toolkit.fluxcd.io/v2beta1
-# kind: HelmRelease
-# metadata:
-#   name: vpn-gateway
-#   namespace: vpn
-#   labels:
-# spec:
-#   interval: 1m
-#   chart:
-#     spec:
-#       # renovate: registryUrl=https://k8s-at-home.com/charts/
-#       chart: pod-gateway
-#       version: 5.4.1
-#       sourceRef:
-#         kind: HelmRepository
-#         name: k8s-at-home
-#       interval: 1m
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: vpn-gateway
+  namespace: vpn
+  labels:
+spec:
+  interval: 1m
+  chart:
+    spec:
+      # renovate: registryUrl=https://k8s-at-home.com/charts/
+      chart: pod-gateway
+      version: 5.4.1
+      sourceRef:
+        kind: HelmRepository
+        name: k8s-at-home
+      interval: 1m
 
-#   # See https://github.com/k8s-at-home/charts/blob/master/charts/pod-gateway/values.yaml
-#   values:
-#     routed_namespaces:
-#     - downloads
-#     settings:
-#       NOT_ROUTED_TO_GATEWAY_CIDRS: "10.0.0.0/8 192.168.0.0/16"
+  # See https://github.com/k8s-at-home/charts/blob/master/charts/pod-gateway/values.yaml
+  values:
+    routed_namespaces:
+    - downloads
+    settings:
+      NOT_ROUTED_TO_GATEWAY_CIDRS: "10.0.0.0/8 192.168.0.0/16"
