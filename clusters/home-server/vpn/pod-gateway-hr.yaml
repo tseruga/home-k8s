@@ -2,22 +2,22 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: downloads-gateway
-  namespace: vpn
+  name: vpn-gateway
+  namespace: default
+  labels:
 spec:
   interval: 5m
   chart:
     spec:
+      # renovate: registryUrl=https://k8s-at-home.com/charts/
       chart: pod-gateway
-      version: 5.4.1
+      version: 2.0.0
       sourceRef:
         kind: HelmRepository
         name: k8s-at-home
       interval: 5m
-  values:
-    image:
-      repository: ghcr.io/k8s-at-home/pod-gateway
-      tag: v1.5.0
 
+  # See https://github.com/k8s-at-home/charts/blob/master/charts/pod-gateway/values.yaml
+  values:
     routed_namespaces:
-      - vpn
+    - vpn
