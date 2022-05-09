@@ -5,10 +5,10 @@ metadata:
   name: plex-meta
   namespace: media
 spec:
-  chart:
-    git: git@github.com:tseruga/home-k8s
-    ref: main
-    path: charts/plex-meta-manager
+  chart: ./charts/plex-meta-manager
+  sourceRef:
+    name: plex-meta-manager
+    kind: GitRepository
   interval: 1m0s
   values:
     service:
