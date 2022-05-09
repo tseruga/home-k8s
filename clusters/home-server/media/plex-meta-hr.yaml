@@ -19,14 +19,14 @@ spec:
     probes:
       liveness:
         enabled: false
-  persistence:
-    config:
-      enabled: true
-      type: "custom"
-      volumeSpec:
-        secret:
-          secretName: pmm-config
-      subPath:
-        - path: config.yml
-          mountPath: "/config/config.yml"
+    persistence:
+      config:
+        enabled: true
+        type: "custom"
+        volumeSpec:
+          secret:
+            secretName: pmm-config
+        subPath:
+          - path: config.yml
+            mountPath: "/config/config.yml"
       
