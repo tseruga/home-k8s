@@ -5,10 +5,13 @@ metadata:
   name: plex-meta
   namespace: media
 spec:
-  chart: ./charts/plex-meta-manager
-  sourceRef:
-    name: plex-meta-manager
-    kind: GitRepository
+  chart:
+    spec:
+      chart: ./charts/plex-meta-manager
+      sourceRef:
+        kind: GitRepository
+        name: github-repo
+        namespace: flux-system
   interval: 1m0s
   values:
     service:
