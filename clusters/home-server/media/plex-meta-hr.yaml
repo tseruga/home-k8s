@@ -6,12 +6,9 @@ metadata:
   namespace: media
 spec:
   chart:
-    spec:
-      chart: ./charts/plex-meta-manager
-      sourceRef:
-        kind: GitRepository
-        name: github-repo
-        namespace: flux-system
+    git: git@github.com:tseruga/home-k8s
+    ref: main
+    path: charts/plex-meta-manager
   interval: 1m0s
   values:
     service:
