@@ -55,4 +55,6 @@ spec:
     config:
       factorioServer: {}
       server_settings: {}
+    env:
+      UPDATE_MODS_ON_START: true
     
