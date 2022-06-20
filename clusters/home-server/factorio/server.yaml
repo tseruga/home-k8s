@@ -52,15 +52,11 @@ spec:
         enabled: true
         type: pvc
         existingClaim: factorio-pvc
-    initContainers: {}
+    initContainers:
+      copy-configmap: {}
     config:
       factorioServer: {}
       server_settings: {}
     env:
       UPDATE_MODS_ON_START: true
-      TOKEN:
-        valueFrom:
-          secretKeyRef:
-            name: factorio-secret
-            key: TOKEN
     
