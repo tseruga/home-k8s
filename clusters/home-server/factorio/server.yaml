@@ -21,8 +21,8 @@ spec:
           server:
             enabled: true
             type: LoadBalancer # Setting Ip external to cluster for easy port forward
-            externalTrafficPolicy: Cluster
-            loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
+            externalTrafficPolicy: Local
+            loadBalancerIP: 192.168.1.300 # Set a IP here to ensure the game server is given a static internal IP
             annotations:
                 metallb.universe.tf/allow-shared-ip: factorio
             ports:
@@ -33,8 +33,8 @@ spec:
         rcon:
             enabled: false
             type: LoadBalancer # Setting Ip external to cluster for easy port forward
-            externalTrafficPolicy: Cluster
-            loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
+            externalTrafficPolicy: Local
+            loadBalancerIP: 192.168.1.300 # Set a IP here to ensure the game server is given a static internal IP
             annotations:
                 metallb.universe.tf/allow-shared-ip: factorio
             ports:
