@@ -17,6 +17,9 @@ spec:
   values:
     service:
       main:
+        type: LoadBalancer
+        annotations:
+                metallb.universe.tf/allow-shared-ip: factorio
         ports:
           server:
             enabled: true
