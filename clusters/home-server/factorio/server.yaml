@@ -55,3 +55,14 @@ spec:
     config:
       server_settings:
         name: 'Krastorio2 2022'
+    env:
+      - name: USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: factorio-secret
+            key: username
+      - name: TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: factorio-secret
+            key: token
