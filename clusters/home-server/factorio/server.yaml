@@ -17,10 +17,10 @@ spec:
   values:
     service:
       main: # Comment out type, annotations, and loadBalancerIP (the next 4 lines) - deploy, then uncomment and redeploy (idk why that works)
-        # type: LoadBalancer
-        # annotations:
-        #         metallb.universe.tf/allow-shared-ip: factorio
-        # loadBalancerIP: 192.168.1.250
+        type: LoadBalancer
+        annotations:
+                metallb.universe.tf/allow-shared-ip: factorio
+        loadBalancerIP: 192.168.1.250
         ports:
           server:
             enabled: true
