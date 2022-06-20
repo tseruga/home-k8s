@@ -7,7 +7,7 @@ metadata:
 spec:
   chart:
     spec:
-      chart: factorio-game
+      chart: factorio
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
@@ -17,17 +17,14 @@ spec:
   values:
     service:
       main:
-        enabled: true
         type: LoadBalancer
         loadBalancerIP: 192.168.1.213
-        externalTrafficPolicy: Cluster
-        annotations:
-          metallb.universe.tf/allow-shared-ip: factorio
-      ports:
-          factorio-game:
-            port: 34201
-            protocol: UDP
-            targetPort: 34197
+        externalTrafficPolicy: Local
+      # ports:
+      #     factorio-game:
+      #       port: 34201
+      #       protocol: UDP
+      #       targetPort: 34197
     persistence:
       config:
         enabled: true
