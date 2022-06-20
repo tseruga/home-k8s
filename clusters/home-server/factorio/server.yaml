@@ -16,7 +16,7 @@ spec:
   interval: 1m0s
   values:
     service:
-      main:
+      main: # Comment out type, annotations, and loadBalancerIP (the next 4 lines) - deploy, then uncomment and redeploy (idk why that works)
         type: LoadBalancer
         annotations:
                 metallb.universe.tf/allow-shared-ip: factorio
@@ -53,3 +53,4 @@ spec:
         type: pvc
         accessMode: ReadWriteOnce
         size: 1Gi
+        persistentVolumeReclaimPolicy: Retain
