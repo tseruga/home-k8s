@@ -54,6 +54,5 @@ spec:
         existingClaim: factorio-pvc
     config:
       factorioServer: {}
-      server_settings:
-        name: 'Krastorio2 2022'
+      server_settings: {}
     
