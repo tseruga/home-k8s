@@ -51,6 +51,4 @@ spec:
       config:
         enabled: true
         type: pvc
-        accessMode: ReadWriteOnce
-        size: 1Gi
-        persistentVolumeReclaimPolicy: Retain
+        existingClaim: factorio-pvc
