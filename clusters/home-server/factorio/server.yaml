@@ -15,9 +15,6 @@ spec:
       version: 1.1.2
   interval: 1m0s
   values:
-    envFrom:
-      - secretRef:
-          name: factorio-secret
     service:
       main: # Comment out type, annotations, and loadBalancerIP (the next 4 lines) - deploy, then uncomment and redeploy (idk why that works)
         type: LoadBalancer
@@ -55,7 +52,6 @@ spec:
         enabled: true
         type: pvc
         existingClaim: factorio-pvc
-    config:
-      server_settings:
-        name: 'Krastorio2 2022'
+    config: null
+      
     
