@@ -57,4 +57,9 @@ spec:
       server_settings: {}
     env:
       UPDATE_MODS_ON_START: true
+      TOKEN:
+        valueFrom:
+          secretKeyRef:
+            name: factorio-secret
+            key: token
     
