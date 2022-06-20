@@ -61,5 +61,5 @@ spec:
         valueFrom:
           secretKeyRef:
             name: factorio-secret
-            key: token
+            key: TOKEN
     
