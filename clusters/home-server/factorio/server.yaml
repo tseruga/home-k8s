@@ -52,6 +52,7 @@ spec:
         enabled: true
         type: pvc
         existingClaim: factorio-pvc
+    initContainers: {}
     config:
       factorioServer: {}
       server_settings: {}
