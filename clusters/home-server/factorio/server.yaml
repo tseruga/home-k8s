@@ -20,7 +20,7 @@ spec:
         ports:
           server:
             type: LoadBalancer
-            loadBalancerIP: 192.168.1.213
+            loadBalancerIP: 192.168.1.300
             externalTrafficPolicy: Local
             annotations:
               metallb.universe.tf/allow-shared-ip: factorio
