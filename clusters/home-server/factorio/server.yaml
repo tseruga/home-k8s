@@ -16,8 +16,8 @@ spec:
   interval: 1m0s
   values:
     envFrom:
-      secretRef:
-        name: factorio-secret
+      - secretRef:
+          name: factorio-secret
     service:
       main: # Comment out type, annotations, and loadBalancerIP (the next 4 lines) - deploy, then uncomment and redeploy (idk why that works)
         type: LoadBalancer
