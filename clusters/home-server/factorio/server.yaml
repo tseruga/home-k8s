@@ -1,51 +1,51 @@
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: factorio
-  namespace: factorio
-spec:
-  chart:
-    spec:
-      chart: factorio
-      reconcileStrategy: ChartVersion
-      sourceRef:
-        kind: HelmRepository
-        name: k8s-at-home
-      version: 1.1.2
-  interval: 1m0s
-  values:
-    service:
-      main:
-        ports:
-          server:
-            enabled: true
-            type: LoadBalancer # Setting Ip external to cluster for easy port forward
-            externalTrafficPolicy: Cluster
-            loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
-            annotations:
-                metallb.universe.tf/allow-shared-ip: factorio
-            ports:
-                factorio-game:
-                  port: 34201
-                  protocol: UDP
-                  targetPort: 34197
-        rcon:
-            enabled: false
-            type: LoadBalancer # Setting Ip external to cluster for easy port forward
-            externalTrafficPolicy: Cluster
-            loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
-            annotations:
-                metallb.universe.tf/allow-shared-ip: factorio
-            ports:
-                factorio-rcon:
-                  enabled: true
-                  port: 27015
-                  protocol: TCP
-                  targetPort: 27015
-    persistence:
-      config:
-        enabled: true
-        type: pvc
-        accessMode: ReadWriteOnce
-        size: 1Gi
+# ---
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+#   name: factorio
+#   namespace: factorio
+# spec:
+#   chart:
+#     spec:
+#       chart: factorio
+#       reconcileStrategy: ChartVersion
+#       sourceRef:
+#         kind: HelmRepository
+#         name: k8s-at-home
+#       version: 1.1.2
+#   interval: 1m0s
+#   values:
+#     service:
+#       main:
+#         ports:
+#           server:
+#             enabled: true
+#             type: LoadBalancer # Setting Ip external to cluster for easy port forward
+#             externalTrafficPolicy: Cluster
+#             loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
+#             annotations:
+#                 metallb.universe.tf/allow-shared-ip: factorio
+#             ports:
+#                 factorio-game:
+#                   port: 34201
+#                   protocol: UDP
+#                   targetPort: 34197
+#         rcon:
+#             enabled: false
+#             type: LoadBalancer # Setting Ip external to cluster for easy port forward
+#             externalTrafficPolicy: Cluster
+#             loadBalancerIP: "192.168.2.100" # Set a IP here to ensure the game server is given a static internal IP
+#             annotations:
+#                 metallb.universe.tf/allow-shared-ip: factorio
+#             ports:
+#                 factorio-rcon:
+#                   enabled: true
+#                   port: 27015
+#                   protocol: TCP
+#                   targetPort: 27015
+#     persistence:
+#       config:
+#         enabled: true
+#         type: pvc
+#         accessMode: ReadWriteOnce
+#         size: 1Gi
