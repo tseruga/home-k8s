@@ -1,15 +1,15 @@
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: assetto-server-manager
-  namespace: assetto
-spec:
-  chart:
-    spec:
-      chart: ./charts/assetto-server-manager
-      sourceRef:
-        kind: GitRepository
-        name: github-repo
-        namespace: flux-system
-  interval: 1m0s
+# ---
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+#   name: assetto-server-manager
+#   namespace: assetto
+# spec:
+#   chart:
+#     spec:
+#       chart: ./charts/assetto-server-manager
+#       sourceRef:
+#         kind: GitRepository
+#         name: github-repo
+#         namespace: flux-system
+#   interval: 1m0s
