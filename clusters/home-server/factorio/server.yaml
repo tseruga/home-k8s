@@ -1,36 +1,39 @@
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: factorio
-  namespace: media
-spec:
-  chart:
-    spec:
-      chart: factorio
-      reconcileStrategy: ChartVersion
-      sourceRef:
-        kind: HelmRepository
-        name: k8s-at-home
-      version: 1.1.2
-  interval: 1m0s
-  values:
-    service:
-      main:
-        enabled: true
-        type: LoadBalancer
-        loadBalancerIP: 192.168.1.213
-        externalTrafficPolicy: Cluster
-        annotations:
-          metallb.universe.tf/allow-shared-ip: factorio
-        ports:
-            factorio-game:
-            port: 34201
-            protocol: UDP
-            targetPort: 34197
-    persistence:
-      config:
-        enabled: true
-        type: pvc
-        accessMode: ReadWriteOnce
-        size: 1Gi
+# ---
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+#   name: factorio
+#   namespace: media
+# spec:
+#   chart:
+#     spec:
+#       chart: factorio-game
+#       reconcileStrategy: ChartVersion
+#       sourceRef:
+#         kind: HelmRepository
+#         name: k8s-at-home
+#       version: 1.1.2
+#   interval: 1m0s
+#   values:
+#     service:
+#       main:
+#         ports:
+#           http:
+#             server:
+#               enabled: true
+#               type: LoadBalancer
+#               loadBalancerIP: 192.168.1.213
+#               externalTrafficPolicy: Cluster
+#               annotations:
+#                 metallb.universe.tf/allow-shared-ip: factorio
+#               ports:
+#                   factorio-game:
+#                     port: 34201
+#                     protocol: UDP
+#                     targetPort: 34197
+#     persistence:
+#       config:
+#         enabled: true
+#         type: pvc
+#         accessMode: ReadWriteOnce
+#         size: 1Gi
