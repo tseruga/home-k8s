@@ -52,3 +52,6 @@ spec:
         enabled: true
         type: pvc
         existingClaim: factorio-pvc
+    config:
+      server_settings:
+        name: 'Krastorio2 2022'
