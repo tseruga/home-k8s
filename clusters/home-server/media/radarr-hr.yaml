@@ -28,6 +28,10 @@ spec:
         enabled: true
         type: pvc
         existingClaim: content-pvc
+      content2:
+        enabled: true
+        type: pvc
+        existingClaim: content2-pvc
       config:
         enabled: true
         type: pvc

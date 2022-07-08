@@ -1,0 +1,11 @@
+- Install drive
+- Partition drive
+    mkfs -t ext4 /dev/<sdx>
+- Mount drive
+    mkdir /mnt/<sdx>
+    mount -t auto /dev/<sdx> /mnt/<sdx>
+- Set up automount
+    ls -al /dev/disk/by-uuid/ # Get UUID
+    sudo vim /etc/fstab
+- Create new pv and pvc for new drive
+- Add pv to charts that require it
