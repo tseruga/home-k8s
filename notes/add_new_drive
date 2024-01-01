@@ -1,4 +1,7 @@
 - Install drive
+
+- Look at /etc/fstab to determine which mounts are already used
+- Run `fdisk` to find the unmounted drive that doesnt exist in fstab
 - Partition drive
     mkfs -t ext4 /dev/<sdx>
 - Mount drive
@@ -9,3 +12,6 @@
     sudo vim /etc/fstab
 - Create new pv and pvc for new drive
 - Add pv to charts that require it
+- Add new root folder to sonarr and radarr
+- Change root folder on radarr and sonarr lists
+- Change overseerr to use new root folder
