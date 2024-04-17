@@ -15,6 +15,9 @@ spec:
       version: 11.3.1
   interval: 1m0s
   values:
+    image:
+      repository: ghcr.io/onedr0p/tautulli
+      tag: 2.13.4@sha256:b3000c0063cc4c0c6f2436fb7174f4bcfd8d91eca05206731edccb8b643ea570
     ingress:
       main:
         enabled: true
