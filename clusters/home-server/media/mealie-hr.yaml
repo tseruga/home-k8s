@@ -1,0 +1,31 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: mealie
+  namespace: media
+spec:
+  chart:
+    spec:
+      chart: mealie
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: k8s-at-home
+      version: 5.3.1
+  interval: 1m0s
+  values:
+    ingress:
+      main:
+        enabled: true
+    service:
+      main:
+        type: LoadBalancer
+        loadBalancerIP: 192.168.1.220
+        externalTrafficPolicy: Local
+    persistence:
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
