@@ -16,7 +16,7 @@ spec:
   interval: 1m0s
   values:
     image:
-      tag: 1.33.0
+      tag: 1.33.2
     ingress:
       main:
         enabled: true
