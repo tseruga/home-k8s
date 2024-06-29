@@ -1,0 +1,21 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: ranked-choice-vote
+  namespace: flux
+spec:
+  releaseName: ranked-choice-vote
+  chart:
+    git: https://github.com/tseruga/home-k8s
+    path: charts/ranked-choice-vote
+    ref: main
+  values:
+    namespace: vote
+    frontend:
+      image:
+        tag: latest
+      ingress:
+        host: vote.tseruga.com
+    backend:
+      image:
+        tag: latest

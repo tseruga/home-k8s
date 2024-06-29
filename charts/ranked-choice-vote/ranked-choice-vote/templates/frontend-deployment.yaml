@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.frontend.name }}
+    spec:
+      containers:
+      - name: {{ .Values.frontend.name }}
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://{{ .Values.backend.name }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.backend.service.port }}"
+        ports:
+        - containerPort: 80

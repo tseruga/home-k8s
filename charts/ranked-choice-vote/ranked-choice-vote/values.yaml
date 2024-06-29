@@ -1,0 +1,21 @@
+namespace: vote
+
+frontend:
+  name: ranked-choice-vote
+  image:
+    repository: tseruga/ranked-choice-vote
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    host: vote.tseruga.com
+
+backend:
+  name: ranked-choice-vote-api
+  image:
+    repository: tseruga/ranked-choice-vote-api
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 5000
