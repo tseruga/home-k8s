@@ -16,11 +16,3 @@ spec:
       interval: 1m
   values:
     namespace: vote
-    frontend:
-      image:
-        tag: latest
-      ingress:
-        host: vote.tseruga.com
-    backend:
-      image:
-        tag: latest
