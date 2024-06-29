@@ -16,6 +16,7 @@ spec:
       containers:
       - name: {{ .Values.frontend.name }}
         image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: Always
         env:
         - name: REACT_APP_API_URL
           value: "http://{{ .Values.backend.name }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.backend.service.port }}"
