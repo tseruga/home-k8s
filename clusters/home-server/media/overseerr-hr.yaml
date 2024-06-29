@@ -26,10 +26,6 @@ spec:
         ingressClassName: nginx
         hosts:
           host: overseerr.tseruga.com
-    service:
-      main:
-        type: LoadBalancer
-        externalTrafficPolicy: Local
     persistence:
       config:
         enabled: true
