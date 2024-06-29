@@ -5,3 +5,5 @@ resources:
   - namespace.yaml
   - helmrepo.yaml
   - ingress-nginx.yaml
+  - cert-manager.yaml
+  - cluster-issuer.yaml
