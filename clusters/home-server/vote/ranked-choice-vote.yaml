@@ -11,7 +11,7 @@ spec:
       chart: ./charts/ranked-choice-vote
       sourceRef:
         kind: GitRepository
-        name: flux-system
+        name: github-repo
         namespace: flux-system
       interval: 1m
   values:
