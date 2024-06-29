@@ -25,7 +25,8 @@ spec:
           cert-manager.io/cluster-issuer: lets-encrypt
         ingressClassName: nginx
         hosts:
-          host: overseerr.tseruga.com
+          - 
+            host: overseerr.tseruga.com
     persistence:
       config:
         enabled: true
