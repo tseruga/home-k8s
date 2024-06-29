@@ -21,7 +21,7 @@ spec:
       main:
         enabled: true
         annotations:
-          cert-manager.io/cluster-issuer: lets-encrypt
+          cert-manager.io/cluster-issuer: letsencrypt-prod
         ingressClassName: nginx
         hosts:
           - host: overseerr.tseruga.com
@@ -29,7 +29,7 @@ spec:
               - path: /
                 pathType: Prefix
         tls:
-          - secretName: overseerr-tls-vklss
+          - secretName: overseerr-tls
             hosts:
               - overseerr.tseruga.com
 
