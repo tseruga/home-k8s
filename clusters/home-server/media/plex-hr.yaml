@@ -39,6 +39,14 @@ spec:
         enabled: true
         type: pvc
         existingClaim: content3-pvc
+      nas_movies:
+        enabled: true
+        type: pvc
+        existingClaim: nas-movie-pvc
+      nas_tv:
+        enabled: true
+        type: pvc
+        existingClaim: nas-tv-pvc
       config:
         enabled: true
         type: pvc
