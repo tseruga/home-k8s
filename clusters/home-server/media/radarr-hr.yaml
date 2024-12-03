@@ -39,7 +39,7 @@ spec:
         enabled: true
         type: pvc
         existingClaim: content3-pvc
-      content3:
+      nas:
         enabled: true
         type: pvc
         existingClaim: nas-movie-pvc
