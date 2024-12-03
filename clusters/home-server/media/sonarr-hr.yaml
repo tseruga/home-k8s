@@ -39,6 +39,10 @@ spec:
         enabled: true
         type: pvc
         existingClaim: content3-pvc
+      nas:
+        enabled: true
+        type: pvc
+        existingClaim: nas-pvc
       config:
         enabled: true
         type: pvc
