@@ -43,6 +43,10 @@ spec:
         enabled: true
         type: pvc
         existingClaim: nas-tv-pvc
+      downloads:
+        enabled: true
+        type: pvc
+        existingClaim: nas-downloads-pvc
       config:
         enabled: true
         type: pvc
