@@ -20,7 +20,7 @@ spec:
       name: ranked-choice-vote
       image:
         repository: tseruga/ranked-choice-vote
-        tag: 1.1.8
+        tag: 1.1.9
       service:
         type: ClusterIP
         port: 80
@@ -31,7 +31,7 @@ spec:
       name: ranked-choice-vote-api
       image:
         repository: tseruga/ranked-choice-vote-api
-        tag: 1.0.11
+        tag: 1.0.12
       service:
         type: ClusterIP
         port: 5000
