@@ -52,3 +52,7 @@ spec:
         type: pvc
         accessMode: ReadWriteOnce
         size: 1Gi
+    securityContext:
+      runAsUser: 568
+      runAsGroup: 568
+      fsGroup: 568
