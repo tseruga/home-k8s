@@ -16,8 +16,8 @@ spec:
   interval: 1m0s
   values:
     image:
-      repository: ghcr.io/home-operations/sonarr
-      tag: "4.0.13.2932"
+      repository: ghcr.io/onedr0p/sonarr
+      tag: "4.0.12.2823"
     ingress:
       main:
         enabled: true
