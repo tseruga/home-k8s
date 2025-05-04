@@ -53,5 +53,5 @@ spec:
         accessMode: ReadWriteOnce
         size: 1Gi
     securityContext:
-      runAsUser: 568
-      runAsGroup: 568
+      runAsUser: 0
+      runAsGroup: 0
