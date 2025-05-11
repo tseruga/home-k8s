@@ -15,6 +15,9 @@ spec:
       version: 11.4.0
   interval: 1m0s
   values:
+    image:
+      repository: lscr.io/linuxserver/jackett
+      tag: latest
     service:
       main:
         type: LoadBalancer
