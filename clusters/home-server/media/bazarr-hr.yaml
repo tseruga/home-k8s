@@ -7,7 +7,7 @@ metadata:
 spec:
   chart:
     spec:
-      chart: bazzar
+      chart: bazarr
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
@@ -16,7 +16,7 @@ spec:
   interval: 1m0s
   values:
     image:
-      repository: lscr.io/linuxserver/jackett
+      repository: lscr.io/linuxserver/bazarr
       tag: v1.5.2-ls304
     service:
       main:
