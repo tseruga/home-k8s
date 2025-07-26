@@ -16,8 +16,8 @@ spec:
   interval: 1m0s
   values:
     image:
-      repository: ghcr.io/onedr0p/radarr-develop
-      tag: 5.20.1
+      repository: ghcr.io/home-operations/radarr
+      tag: 5.27.2
     ingress:
       main:
         enabled: true
