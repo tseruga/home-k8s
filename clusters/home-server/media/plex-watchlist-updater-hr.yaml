@@ -1,0 +1,39 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: plex-watchlist-updater
+  namespace: media
+spec:
+  chart:
+    spec:
+      chart: plex-watchlist-updater
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: local-charts
+      version: 0.1.0
+  interval: 1m0s
+  values:
+    image:
+      repository: ghcr.io/your-username/plex-watchlist-updater
+      tag: latest
+      
+    env:
+      TZ: "America/New_York"  # Adjust to your timezone
+      PLEX_URL: "http://plex.media.svc.cluster.local:32400"
+      RADARR_URL: "http://radarr.media.svc.cluster.local:7878"
+      TARGET_PROFILE: "HD-1080p"  # Adjust to match your Radarr profile
+      
+    config:
+      interval: 60  # Check every hour
+      targetProfile: "HD-1080p"
+      
+    # Configure resource limits
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi 
