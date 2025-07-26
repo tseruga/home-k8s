@@ -340,10 +340,11 @@ class PlexRadarrUpdater:
         # Get watchlist movies
         watchlist_movies = self.plex.get_watchlist()
         
+
         # If no watchlist movies, try recently added as fallback
         if not watchlist_movies:
-            logger.warning("No watchlist movies found, trying recently added movies as fallback")
-            watchlist_movies = self.plex.get_recently_added_movies(limit=10)
+            logger.warning("No watchlist movies found, quitting")
+            exit()
             
         if not watchlist_movies:
             logger.warning("No movies found to process")

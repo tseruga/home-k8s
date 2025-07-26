@@ -2,17 +2,17 @@
 
 # Plex server configuration
 plex:
-  url: "http://192.168.1.210:32400"  # Your Plex server URL
-  token: "YOUR_PLEX_TOKEN_HERE"      # Get this from Plex settings
+  url: "http://98.193.95.91:32400"  # Your Plex server URL
+  token: "xxx"      # Get this from Plex settings
 
 # Radarr server configuration  
 radarr:
   url: "http://192.168.1.211:7878"   # Your Radarr server URL
-  api_key: "YOUR_RADARR_API_KEY_HERE" # Get this from Radarr settings
+  api_key: "xxx" # Get this from Radarr settings
 
 # Target quality profile name to upgrade movies to
 # This should match exactly with a profile name in your Radarr
-target_profile: "HD-1080p"
+target_profile: "Requested 4k-SDTV"
 
 # Optional: Logging configuration
 logging:
