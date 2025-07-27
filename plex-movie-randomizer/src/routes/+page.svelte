@@ -34,6 +34,7 @@
   let spinningMovies: Movie[] = [];
   let slotMachineContainer: HTMLElement;
   let selectedMovieIndex = 0;
+  let showWinnerPause = false;
 
   // Load config from localStorage on mount
   onMount(() => {
@@ -222,15 +223,21 @@
     
     // Start animation after a brief delay
     requestAnimationFrame(() => {
-      // Apply the spinning animation with custom easing for slot machine effect
-      slotMachineContainer.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.25, 1)';
+      // Apply the spinning animation with PAINFULLY slow ending - maximum suspense!
+      slotMachineContainer.style.transition = 'transform 12s cubic-bezier(0.25, 0, 0.001, 1)';
       slotMachineContainer.style.transform = `translateX(-${totalDistance}px)`;
       
-      // Set the selected movie after animation completes
+      // After animation completes, show winner pause
       setTimeout(() => {
-        selectedMovie = movies[selectedMovieIndex];
-        isSpinning = false;
-      }, 4000);
+        showWinnerPause = true;
+        
+        // After showing the winner for a few seconds, reveal the full details
+        setTimeout(() => {
+          selectedMovie = movies[selectedMovieIndex];
+          isSpinning = false;
+          showWinnerPause = false;
+        }, 2500); // Hold winner display for 2.5 seconds
+      }, 12000); // Animation duration
     });
   }
 
@@ -389,7 +396,7 @@
           <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <button
               on:click={selectRandomMovie}
-              disabled={!imagesLoaded || isSpinning}
+              disabled={!imagesLoaded || isSpinning || showWinnerPause}
               class="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
             >
               <Shuffle size={24} class="{isSpinning ? 'animate-spin' : ''}" />
@@ -397,6 +404,8 @@
                 Loading Images...
               {:else if isSpinning}
                 Spinning...
+              {:else if showWinnerPause}
+                Revealing Winner...
               {:else}
                 Pick Random Movie
               {/if}
@@ -413,26 +422,38 @@
     </div>
 
     <!-- Slot Machine Animation -->
-    {#if isSpinning && spinningMovies.length > 0}
+    {#if (isSpinning || showWinnerPause) && spinningMovies.length > 0}
       <div class="max-w-6xl mx-auto mb-12">
         <div class="relative bg-gradient-to-r from-yellow-600/20 via-yellow-400/30 to-yellow-600/20 rounded-2xl p-8 border-4 border-yellow-400/50 shadow-2xl slot-machine-container">
           <!-- Slot Machine Header -->
           <div class="text-center mb-6">
-            <h3 class="text-2xl font-bold text-yellow-300 mb-2">🎰 Spinning the Movie Wheel!</h3>
-            <p class="text-yellow-200">Finding your perfect movie...</p>
+            {#if showWinnerPause}
+              <h3 class="text-3xl font-bold text-green-300 mb-2 animate-pulse">🎉 Winner Selected! 🎉</h3>
+              <p class="text-green-200">Your perfect movie has been chosen!</p>
+            {:else}
+              <h3 class="text-2xl font-bold text-yellow-300 mb-2">🎰 Spinning the Movie Wheel!</h3>
+              <p class="text-yellow-200">Finding your perfect movie...</p>
+            {/if}
           </div>
           
           <!-- Slot Machine Container -->
           <div class="relative overflow-hidden rounded-xl bg-black/40 backdrop-blur-sm border-2 border-yellow-400/30" style="height: 280px;">
             <!-- Center selection indicator -->
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div class="w-48 h-72 border-4 border-yellow-400 rounded-xl bg-yellow-400/10 shadow-2xl slot-indicator">
+              <div class="w-48 h-72 border-4 {showWinnerPause ? 'border-green-400 bg-green-400/20' : 'border-yellow-400 bg-yellow-400/10'} rounded-xl shadow-2xl {showWinnerPause ? 'winner-indicator' : 'slot-indicator'}">
                 <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div class="w-8 h-8 bg-yellow-400 rotate-45 border-2 border-yellow-300"></div>
+                  <div class="w-8 h-8 {showWinnerPause ? 'bg-green-400 border-green-300' : 'bg-yellow-400 border-yellow-300'} rotate-45 border-2"></div>
                 </div>
                 <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                  <div class="w-8 h-8 bg-yellow-400 rotate-45 border-2 border-yellow-300"></div>
+                  <div class="w-8 h-8 {showWinnerPause ? 'bg-green-400 border-green-300' : 'bg-yellow-400 border-yellow-300'} rotate-45 border-2"></div>
                 </div>
+                {#if showWinnerPause}
+                  <!-- Winner celebration effects -->
+                  <div class="absolute -top-2 -left-2 w-4 h-4 bg-green-300 rounded-full animate-ping"></div>
+                  <div class="absolute -top-1 -right-3 w-3 h-3 bg-yellow-300 rounded-full animate-ping delay-300"></div>
+                  <div class="absolute -bottom-2 -left-3 w-3 h-3 bg-green-300 rounded-full animate-ping delay-700"></div>
+                  <div class="absolute -bottom-1 -right-2 w-4 h-4 bg-yellow-300 rounded-full animate-ping delay-500"></div>
+                {/if}
               </div>
             </div>
             
@@ -472,10 +493,17 @@
           
           <!-- Spinning Indicator -->
           <div class="text-center mt-6">
-            <div class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-600/20 rounded-full border border-yellow-400/30">
-              <div class="w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
-              <span class="text-yellow-200 font-medium">Spinning...</span>
-            </div>
+            {#if showWinnerPause}
+              <div class="inline-flex items-center gap-3 px-6 py-3 bg-green-600/20 rounded-full border border-green-400/30">
+                <div class="w-4 h-4 bg-green-400 rounded-full animate-bounce"></div>
+                <span class="text-green-200 font-medium">🎊 Revealing your movie... 🎊</span>
+              </div>
+            {:else}
+              <div class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-600/20 rounded-full border border-yellow-400/30">
+                <div class="w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+                <span class="text-yellow-200 font-medium">Spinning...</span>
+              </div>
+            {/if}
           </div>
         </div>
       </div>
@@ -744,6 +772,29 @@
 
   .slot-indicator {
     animation: slot-indicator 1.5s ease-in-out infinite;
+  }
+
+  @keyframes winner-celebration {
+    0%, 100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 0.9;
+    }
+    25% {
+      transform: scale(1.08) rotate(1deg);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05) rotate(0deg);
+      opacity: 1;
+    }
+    75% {
+      transform: scale(1.08) rotate(-1deg);
+      opacity: 1;
+    }
+  }
+
+  .winner-indicator {
+    animation: winner-celebration 1s ease-in-out infinite;
   }
 
   /* Ensure smooth hardware acceleration for slot machine */
