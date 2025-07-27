@@ -30,6 +30,10 @@
   let imagesLoaded = false;
   let loadingImages = false;
   let imageLoadProgress = 0;
+  let isSpinning = false;
+  let spinningMovies: Movie[] = [];
+  let slotMachineContainer: HTMLElement;
+  let selectedMovieIndex = 0;
 
   // Load config from localStorage on mount
   onMount(() => {
@@ -170,11 +174,64 @@
     }
   }
 
-    function selectRandomMovie() {
-    if (movies.length === 0 || !imagesLoaded) return;
+  function selectRandomMovie() {
+    if (movies.length === 0 || !imagesLoaded || isSpinning) return;
     
+    // Clear previous selection
+    selectedMovie = null;
+    isSpinning = true;
+    
+    // Select random movie and index
     const randomIndex = Math.floor(Math.random() * movies.length);
-    selectedMovie = movies[randomIndex];
+    selectedMovieIndex = randomIndex;
+    
+    // Create spinning array with multiple copies to simulate infinite scroll
+    // We need enough copies to make it look continuous and allow for spinning
+    const copies = 5;
+    spinningMovies = [];
+    for (let i = 0; i < copies; i++) {
+      spinningMovies.push(...movies);
+    }
+    
+    // Start the slot machine animation after a brief delay
+    setTimeout(() => {
+      startSlotMachineAnimation();
+    }, 100);
+  }
+
+  function startSlotMachineAnimation() {
+    if (!slotMachineContainer) return;
+    
+    const itemWidth = 208; // Width of each movie poster (w-44 = 176px) + margin (16px each side = 32px) = 208px total
+    const containerWidth = slotMachineContainer.parentElement?.clientWidth || 1200;
+    const visibleItems = Math.floor(containerWidth / itemWidth);
+    const centerPosition = Math.floor(visibleItems / 2);
+    
+    // Start from beginning
+    slotMachineContainer.style.transform = `translateX(0px)`;
+    slotMachineContainer.style.transition = 'none';
+    
+    // Calculate final position - we want the selected movie from the middle copy to be centered
+    const middleCopyStartIndex = 2 * movies.length; // Third copy (0-indexed)
+    const selectedMoviePositionInMiddleCopy = middleCopyStartIndex + selectedMovieIndex;
+    const finalPosition = (selectedMoviePositionInMiddleCopy * itemWidth) - (centerPosition * itemWidth);
+    
+    // Add extra spins for dramatic effect
+    const extraSpins = movies.length * itemWidth * 2; // Two extra full rotations
+    const totalDistance = finalPosition + extraSpins;
+    
+    // Start animation after a brief delay
+    requestAnimationFrame(() => {
+      // Apply the spinning animation with custom easing for slot machine effect
+      slotMachineContainer.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.25, 1)';
+      slotMachineContainer.style.transform = `translateX(-${totalDistance}px)`;
+      
+      // Set the selected movie after animation completes
+      setTimeout(() => {
+        selectedMovie = movies[selectedMovieIndex];
+        isSpinning = false;
+      }, 4000);
+    });
   }
 
   function clearSelection() {
@@ -332,12 +389,14 @@
           <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <button
               on:click={selectRandomMovie}
-              disabled={!imagesLoaded}
+              disabled={!imagesLoaded || isSpinning}
               class="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
             >
-              <Shuffle size={24} />
+              <Shuffle size={24} class="{isSpinning ? 'animate-spin' : ''}" />
               {#if !imagesLoaded}
                 Loading Images...
+              {:else if isSpinning}
+                Spinning...
               {:else}
                 Pick Random Movie
               {/if}
@@ -352,6 +411,75 @@
         {/if}
       </div>
     </div>
+
+    <!-- Slot Machine Animation -->
+    {#if isSpinning && spinningMovies.length > 0}
+      <div class="max-w-6xl mx-auto mb-12">
+        <div class="relative bg-gradient-to-r from-yellow-600/20 via-yellow-400/30 to-yellow-600/20 rounded-2xl p-8 border-4 border-yellow-400/50 shadow-2xl slot-machine-container">
+          <!-- Slot Machine Header -->
+          <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold text-yellow-300 mb-2">🎰 Spinning the Movie Wheel!</h3>
+            <p class="text-yellow-200">Finding your perfect movie...</p>
+          </div>
+          
+          <!-- Slot Machine Container -->
+          <div class="relative overflow-hidden rounded-xl bg-black/40 backdrop-blur-sm border-2 border-yellow-400/30" style="height: 280px;">
+            <!-- Center selection indicator -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div class="w-48 h-72 border-4 border-yellow-400 rounded-xl bg-yellow-400/10 shadow-2xl slot-indicator">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div class="w-8 h-8 bg-yellow-400 rotate-45 border-2 border-yellow-300"></div>
+                </div>
+                <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                  <div class="w-8 h-8 bg-yellow-400 rotate-45 border-2 border-yellow-300"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Moving movie strip -->
+            <div 
+              bind:this={slotMachineContainer}
+              class="flex items-center h-full slot-strip"
+            >
+              {#each spinningMovies as movie, index}
+                <div class="flex-shrink-0 w-44 h-64 relative" style="margin: 0 16px;">
+                  {#if movie.poster}
+                    <img 
+                      src={movie.poster}
+                      alt={movie.title}
+                      class="w-full h-full object-cover rounded-lg shadow-lg border-2 border-gray-600"
+                      loading="eager"
+                    />
+                  {:else}
+                    <div class="w-full h-full bg-gray-700 rounded-lg shadow-lg border-2 border-gray-600 flex items-center justify-center">
+                      <Film size={48} class="text-gray-400" />
+                    </div>
+                  {/if}
+                  <div class="absolute bottom-0 left-0 right-0 bg-black/80 text-white p-2 rounded-b-lg">
+                    <p class="text-xs font-medium truncate">{movie.title}</p>
+                    {#if movie.year}
+                      <p class="text-xs text-gray-300">{movie.year}</p>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            </div>
+            
+            <!-- Fade edges for better visual effect -->
+            <div class="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black to-transparent pointer-events-none z-5"></div>
+            <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black to-transparent pointer-events-none z-5"></div>
+          </div>
+          
+          <!-- Spinning Indicator -->
+          <div class="text-center mt-6">
+            <div class="inline-flex items-center gap-3 px-6 py-3 bg-yellow-600/20 rounded-full border border-yellow-400/30">
+              <div class="w-4 h-4 bg-yellow-400 rounded-full animate-pulse"></div>
+              <span class="text-yellow-200 font-medium">Spinning...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {/if}
 
     <!-- Error Message -->
     {#if error}
@@ -587,5 +715,41 @@
 
   .confetti {
     animation: confetti 1s ease-out infinite;
+  }
+
+  /* Slot machine styles */
+  @keyframes slot-machine-glow {
+    0%, 100% {
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 60px rgba(251, 191, 36, 0.8);
+    }
+  }
+
+  .slot-machine-container {
+    animation: slot-machine-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes slot-indicator {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+  }
+
+  .slot-indicator {
+    animation: slot-indicator 1.5s ease-in-out infinite;
+  }
+
+  /* Ensure smooth hardware acceleration for slot machine */
+  .slot-strip {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
   }
 </style>
