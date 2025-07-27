@@ -20,9 +20,39 @@
     token: string;
   }
 
+  // Add authentication state interfaces
+  interface PlexPinResponse {
+    id: number;
+    code: string;
+    product: string;
+    trusted: boolean;
+    qr: string;
+    clientIdentifier: string;
+    expiresIn: number;
+    createdAt: string;
+    expiresAt: string;
+    authToken: string | null;
+    newRegistration: boolean | null;
+  }
+
+  interface PlexAuthState {
+    isAuthenticating: boolean;
+    authError: string;
+    isAuthenticated: boolean;
+    currentPin: string;
+  }
+
   let config: PlexConfig = {
     baseUrl: '',
     token: ''
+  };
+
+  // Add authentication state
+  let authState: PlexAuthState = {
+    isAuthenticating: false,
+    authError: '',
+    isAuthenticated: false,
+    currentPin: ''
   };
 
   let movies: Movie[] = [];
@@ -52,15 +82,253 @@
   let filteredMovies: Movie[] = [];
   let availableGenres: string[] = []; // List of all available genres
 
+  // Generate a unique client identifier for this app instance
+  const CLIENT_ID = 'plex-movie-randomizer-' + crypto.randomUUID();
+  const APP_NAME = 'Plex Movie Randomizer';
+
   // Load config from localStorage on mount
   onMount(() => {
     const savedConfig = localStorage.getItem('plexConfig');
     if (savedConfig) {
       config = JSON.parse(savedConfig);
+      authState.isAuthenticated = !!config.token;
     } else {
       showConfig = true;
     }
   });
+
+  // Plex PIN Authentication Functions
+  async function requestPlexPIN(): Promise<PlexPinResponse> {
+    console.log('Requesting PIN from Plex with client ID:', CLIENT_ID);
+    
+    const response = await fetch('https://plex.tv/api/v2/pins', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-Plex-Client-Identifier': CLIENT_ID,
+        'X-Plex-Product': APP_NAME,
+        'X-Plex-Device': 'Web Browser',
+        'X-Plex-Version': '1.0.0',
+        'X-Plex-Platform': 'Web',
+        'X-Plex-Device-Name': 'Plex Movie Randomizer'
+      }
+      // No body - use default PIN generation (should be 4 digits)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to request PIN: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('PIN request successful:', data);
+    return data;
+  }
+
+  async function checkPINStatus(pinId: number): Promise<PlexPinResponse> {
+    const response = await fetch(`https://plex.tv/api/v2/pins/${pinId}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Plex-Client-Identifier': CLIENT_ID,
+        'X-Plex-Product': APP_NAME,
+        'X-Plex-Device': 'Web Browser',
+        'X-Plex-Version': '1.0.0',
+        'X-Plex-Platform': 'Web',
+        'X-Plex-Device-Name': 'Plex Movie Randomizer'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to check PIN status: ${response.status} ${response.statusText}`);
+    }
+
+    const responseText = await response.text();
+    console.log(`Raw PIN status response:`, responseText);
+
+    try {
+      const data = JSON.parse(responseText);
+      return data;
+    } catch (parseError) {
+      console.error('Failed to parse PIN status response:', parseError);
+      console.error('Response text was:', responseText);
+      throw new Error('Invalid JSON response from Plex PIN status endpoint');
+    }
+  }
+
+  function getPlexAuthURL(pinCode: string): string {
+    // Try the traditional plex.tv/link approach instead of app.plex.tv/auth
+    // This is the method that many working implementations use
+    console.log('Using PIN code for authentication:', pinCode);
+    return `https://plex.tv/link?pin=${pinCode}`;
+  }
+
+  async function loginWithPlex() {
+    authState.isAuthenticating = true;
+    authState.authError = '';
+    let authWindow: Window | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    try {
+      console.log('Initiating Plex PIN authentication...');
+      
+      // Request PIN from Plex
+      const pinData = await requestPlexPIN();
+      console.log('PIN received:', pinData.code);
+
+      // Create auth URL and open popup
+      const authURL = getPlexAuthURL(pinData.code);
+      
+      // Store the PIN code to show to the user
+      authState.currentPin = pinData.code;
+      authState.authError = ''; // Clear any previous errors
+      
+      authWindow = window.open(
+        authURL, 
+        'plexAuth', 
+        'width=600,height=700,scrollbars=yes,resizable=yes,status=yes,location=yes,toolbar=no,menubar=no'
+      );
+
+      if (!authWindow) {
+        throw new Error('Failed to open authentication window. Please allow popups for this site.');
+      }
+
+      // Poll for authentication completion
+      const startTime = Date.now();
+      const timeout = Math.min(pinData.expiresIn * 1000, 300000); // Max 5 minutes
+      let pollAttempts = 0;
+      const maxPollAttempts = 150; // 5 minutes at 2-second intervals
+
+      console.log(`Starting polling for PIN ${pinData.id}, expires in ${pinData.expiresIn} seconds`);
+
+      pollInterval = setInterval(async () => {
+        pollAttempts++;
+        
+        try {
+          // Check if window was closed by user
+          if (authWindow?.closed) {
+            console.log('Auth window was closed by user');
+            clearInterval(pollInterval!);
+            authState.isAuthenticating = false;
+            authState.currentPin = ''; // Clear the PIN display
+            authState.authError = 'Authentication cancelled by user';
+            return;
+          }
+
+          // Check if the popup has been redirected to our forward URL (indicates success)
+          try {
+            const popupUrl = authWindow?.location?.href;
+            if (popupUrl && popupUrl.includes(window.location.origin)) {
+              console.log('Popup redirected to forward URL, authentication likely successful');
+              // Give it a moment for the authToken to be available, then check PIN status
+              setTimeout(async () => {
+                try {
+                  const status = await checkPINStatus(pinData.id);
+                  if (status.authToken) {
+                    console.log('Authentication confirmed via redirect detection!');
+                    clearInterval(pollInterval!);
+                    authWindow?.close();
+                    
+                    config.token = status.authToken;
+                    authState.isAuthenticated = true;
+                    authState.isAuthenticating = false;
+                    localStorage.setItem('plexConfig', JSON.stringify(config));
+                    showConfig = false;
+                    await fetchWatchlist();
+                  }
+                } catch (err) {
+                  console.log('Redirect detected but token not ready yet, continuing polling...');
+                }
+              }, 1000);
+            }
+          } catch (urlError) {
+            // Cross-origin restrictions prevent reading popup URL - this is normal
+          }
+
+          // Check if we've exceeded the timeout or max attempts
+          if (Date.now() - startTime > timeout || pollAttempts > maxPollAttempts) {
+            console.log(`Authentication timeout: ${Date.now() - startTime}ms elapsed, ${pollAttempts} attempts`);
+            clearInterval(pollInterval!);
+            authWindow?.close();
+            authState.isAuthenticating = false;
+            authState.currentPin = ''; // Clear the PIN display
+            authState.authError = 'Authentication timed out. Please try again.';
+            return;
+          }
+
+          console.log(`Polling attempt ${pollAttempts} for PIN status...`);
+
+          // Check PIN status
+          const status = await checkPINStatus(pinData.id);
+          console.log(`PIN status response:`, status);
+          
+          if (status.authToken) {
+            // Success! We have the token
+            console.log('Authentication successful! Token received:', status.authToken.substring(0, 10) + '...');
+            clearInterval(pollInterval!);
+            authWindow?.close();
+            
+            // Save the token
+            config.token = status.authToken;
+            authState.isAuthenticated = true;
+            authState.isAuthenticating = false;
+            authState.currentPin = ''; // Clear the PIN display
+            
+            // Save to localStorage
+            localStorage.setItem('plexConfig', JSON.stringify(config));
+            
+            console.log('Token saved, loading watchlist...');
+            
+            // Hide config panel and load watchlist
+            showConfig = false;
+            await fetchWatchlist();
+          } else {
+            console.log(`Polling attempt ${pollAttempts}: No token yet, continuing...`);
+          }
+        } catch (pollError) {
+          console.warn(`Error during polling attempt ${pollAttempts}:`, pollError);
+          
+          // If we get multiple consecutive errors, fail the authentication
+          if (pollError instanceof Error && pollError.message.includes('401')) {
+            console.error('PIN authentication failed - unauthorized');
+            clearInterval(pollInterval!);
+            authWindow?.close();
+            authState.isAuthenticating = false;
+            authState.currentPin = ''; // Clear the PIN display
+            authState.authError = 'Authentication failed. Please try again.';
+            return;
+          }
+          
+          // Continue polling for other errors (network issues, etc.)
+        }
+              }, 1000); // Poll every 1 second for faster detection
+
+    } catch (error) {
+      console.error('Authentication error:', error);
+      authState.authError = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
+      authState.isAuthenticating = false;
+      authState.currentPin = ''; // Clear the PIN display
+      
+      if (authWindow) {
+        authWindow.close();
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    }
+  }
+
+  function logout() {
+    config.token = '';
+    authState.isAuthenticated = false;
+    authState.authError = '';
+    authState.currentPin = ''; // Clear the PIN display
+    movies = [];
+    selectedMovie = null;
+    filteredMovies = [];
+    imagesLoaded = false;
+    localStorage.removeItem('plexConfig');
+    showConfig = true;
+  }
 
   function saveConfig() {
     localStorage.setItem('plexConfig', JSON.stringify(config));
@@ -72,7 +340,9 @@
 
   async function fetchWatchlist() {
     if (!config.token) {
-      error = 'Please configure your Plex authentication token';
+      error = 'Authentication required. Please login with Plex first.';
+      authState.isAuthenticated = false;
+      showConfig = true;
       return;
     }
 
@@ -110,7 +380,12 @@
         
         if (!watchlistResponse.ok) {
           if (watchlistResponse.status === 401) {
-            throw new Error('Invalid Plex token. Please check your authentication token.');
+            // Token is invalid or expired, need to re-authenticate
+            authState.isAuthenticated = false;
+            authState.authError = 'Your Plex session has expired. Please login again.';
+            config.token = '';
+            localStorage.removeItem('plexConfig');
+            throw new Error('Authentication expired. Please login again.');
           }
           throw new Error(`Failed to fetch watchlist from plex.tv: ${watchlistResponse.status} ${watchlistResponse.statusText}`);
         }
@@ -527,44 +802,140 @@
       </p>
     </header>
 
-    <!-- Config and Filter Buttons -->
-    <div class="flex justify-center gap-4 mb-8">
-      <button
-        on:click={() => showConfig = !showConfig}
-        class="flex items-center gap-3 px-6 py-3 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700/80 rounded-xl transition-all duration-300 border border-gray-700/50 hover:border-gray-600/50 shadow-lg hover:shadow-xl hover:scale-105"
-      >
-        <Settings size={20} />
-        <span class="font-medium">Settings</span>
-      </button>
-      
-      {#if movies.length > 0}
+    <!-- Authentication and Control Buttons -->
+    <div class="flex justify-center gap-4 mb-8 flex-wrap">
+      {#if !authState.isAuthenticated}
+        <!-- Login with Plex Button -->
         <button
-          on:click={() => { showFilters = !showFilters; if (showFilters) applyFilters(); }}
-          class="flex items-center gap-3 px-6 py-3 bg-purple-800/80 backdrop-blur-sm hover:bg-purple-700/80 rounded-xl transition-all duration-300 border border-purple-700/50 hover:border-purple-600/50 shadow-lg hover:shadow-xl hover:scale-105"
+          on:click={loginWithPlex}
+          disabled={authState.isAuthenticating}
+          class="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-700 hover:to-yellow-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg font-semibold"
+        >
+          {#if authState.isAuthenticating}
+            <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            <span>Connecting to Plex...</span>
+          {:else}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <span>Login with Plex</span>
+          {/if}
+        </button>
+      {:else}
+        <!-- Authenticated: Show Settings and Filter buttons -->
+        <button
+          on:click={() => showConfig = !showConfig}
+          class="flex items-center gap-3 px-6 py-3 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700/80 rounded-xl transition-all duration-300 border border-gray-700/50 hover:border-gray-600/50 shadow-lg hover:shadow-xl hover:scale-105"
+        >
+          <Settings size={20} />
+          <span class="font-medium">Settings</span>
+        </button>
+        
+        {#if movies.length > 0}
+          <button
+            on:click={() => { showFilters = !showFilters; if (showFilters) applyFilters(); }}
+            class="flex items-center gap-3 px-6 py-3 bg-purple-800/80 backdrop-blur-sm hover:bg-purple-700/80 rounded-xl transition-all duration-300 border border-purple-700/50 hover:border-purple-600/50 shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span class="font-medium">Filters</span>
+            {#if filteredMovies.length > 0 && filteredMovies.length < movies.length}
+              <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">{filteredMovies.length}</span>
+            {/if}
+          </button>
+        {/if}
+
+        <!-- Logout Button -->
+        <button
+          on:click={logout}
+          class="flex items-center gap-3 px-6 py-3 bg-red-800/80 backdrop-blur-sm hover:bg-red-700/80 rounded-xl transition-all duration-300 border border-red-700/50 hover:border-red-600/50 shadow-lg hover:shadow-xl hover:scale-105"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16,17 21,12 16,7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
           </svg>
-          <span class="font-medium">Filters</span>
-          {#if filteredMovies.length > 0 && filteredMovies.length < movies.length}
-            <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">{filteredMovies.length}</span>
-          {/if}
+          <span class="font-medium">Logout</span>
         </button>
       {/if}
     </div>
 
+    <!-- PIN Code Display During Authentication -->
+    {#if authState.isAuthenticating && authState.currentPin}
+      <div class="max-w-lg mx-auto mb-8 p-8 bg-gradient-to-br from-blue-900/80 to-purple-900/80 backdrop-blur-sm border border-blue-500/50 rounded-xl shadow-2xl animate-pulse">
+        <div class="text-center">
+          <div class="mb-4">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mx-auto text-blue-400">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+              <line x1="7" y1="15" x2="7.01" y2="15"></line>
+              <line x1="11" y1="15" x2="13" y2="15"></line>
+            </svg>
+          </div>
+          <h3 class="text-2xl font-bold text-blue-200 mb-3">🔑 Authentication In Progress</h3>
+          <p class="text-blue-300 mb-6">Enter this PIN code in the Plex popup window:</p>
+          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-blue-400/30">
+            <div class="text-4xl font-mono font-bold text-white tracking-widest select-all">
+              {authState.currentPin}
+            </div>
+            <p class="text-blue-200 text-sm mt-2">👆 Click to select and copy</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-blue-300 text-sm">
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent"></div>
+            <span>Waiting for authentication...</span>
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Authentication Error Display -->
+    {#if authState.authError}
+      <div class="max-w-lg mx-auto mb-8 p-6 bg-red-900/80 backdrop-blur-sm border border-red-700/50 rounded-xl shadow-lg">
+        <div class="flex items-center gap-3 mb-3">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-red-400">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+          <h3 class="text-lg font-semibold text-red-200">Authentication Error</h3>
+        </div>
+        <p class="text-red-200 mb-4">{authState.authError}</p>
+        <button
+          on:click={() => authState.authError = ''}
+          class="px-4 py-2 bg-red-700/50 hover:bg-red-600/50 text-red-200 rounded-lg transition-colors text-sm"
+        >
+          Dismiss
+        </button>
+      </div>
+    {/if}
+
     <!-- Configuration Panel -->
-    {#if showConfig}
+    {#if showConfig && authState.isAuthenticated}
       <div class="max-w-lg mx-auto mb-10 p-8 bg-gray-800/90 backdrop-blur-sm rounded-2xl border border-gray-700/50 shadow-2xl">
         <h2 class="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Plex Configuration
+          Optional Configuration
         </h2>
         
+        <!-- Authentication Status -->
+        <div class="mb-6 p-4 bg-green-900/30 border border-green-600/30 rounded-lg">
+          <div class="flex items-center gap-3">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-400">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22,4 12,14.01 9,11.01"></polyline>
+            </svg>
+            <div>
+              <p class="text-green-200 font-medium">✅ Connected to Plex</p>
+              <p class="text-green-300 text-sm">Authentication successful</p>
+            </div>
+          </div>
+        </div>
+        
         <div class="space-y-6">
-                      <div>
-              <label for="baseUrl" class="block text-sm font-semibold mb-2 text-gray-200">
-                Plex Server URL (Required for Genres)
-              </label>
+          <div>
+            <label for="baseUrl" class="block text-sm font-semibold mb-2 text-gray-200">
+              Plex Server URL (Optional - for Genre Filtering)
+            </label>
             <input
               id="baseUrl"
               type="text"
@@ -573,29 +944,8 @@
               class="w-full px-4 py-3 bg-gray-700/80 border border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
             />
             <p class="text-xs text-gray-400 mt-2">
-              Required for genre information and better poster loading.
-              For basic watchlist data, we connect to plex.tv directly.
-            </p>
-          </div>
-          
-          <div>
-            <label for="token" class="block text-sm font-semibold mb-2 text-gray-200">
-              Plex Token
-            </label>
-            <input
-              id="token"
-              type="password"
-              bind:value={config.token}
-              placeholder="Your Plex authentication token"
-              class="w-full px-4 py-3 bg-gray-700/80 border border-gray-600/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
-            />
-            <p class="text-xs text-gray-400 mt-2">
-              Find your token in Plex settings or 
-              <a href="https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/" 
-                 target="_blank" 
-                 class="text-purple-400 hover:text-purple-300 underline transition-colors">
-                follow this guide
-              </a>
+              🎯 <strong>Optional:</strong> Add your local Plex server URL to enable genre filtering and improved poster loading.
+              The app works fine without this for basic movie randomization.
             </p>
           </div>
           
@@ -603,7 +953,7 @@
             on:click={saveConfig}
             class="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all duration-300 font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105"
           >
-            Save Configuration
+            Save Settings
           </button>
         </div>
       </div>
@@ -790,54 +1140,105 @@
 
     <!-- Main Controls -->
     <div class="text-center mb-12">
-      <div class="space-y-6">
-        <button
-          on:click={fetchWatchlist}
-          disabled={loading || loadingImages || !config.token}
-          class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
-        >
-          {#if loading}
-            Loading from plex.tv...
-          {:else if loadingImages}
-            Loading Images...
-          {:else}
-            Load Watchlist
-          {/if}
-        </button>
-        
-        {#if movies.length > 0}
-          <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button
-              on:click={selectRandomMovie}
-              disabled={!imagesLoaded || isSpinning || showWinnerPause || (filteredMovies.length === 0 && movies.length > 0)}
-              class="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
-            >
-              <Shuffle size={24} class="{isSpinning ? 'animate-spin' : ''}" />
-              {#if !imagesLoaded}
-                Loading Images...
-              {:else if isSpinning}
-                Spinning...
-              {:else if showWinnerPause}
-                Revealing Winner...
-              {:else if filteredMovies.length === 0 && movies.length > 0}
-                No Movies Match Filters
-              {:else}
-                Pick Random Movie
-              {/if}
-            </button>
-            
-            <div class="px-6 py-3 bg-gray-800/60 backdrop-blur-sm rounded-xl border border-gray-700/50">
-              <p class="text-gray-200 font-medium">
-                🎬 {#if filteredMovies.length > 0 && filteredMovies.length < movies.length}
-                  {filteredMovies.length} filtered movie{filteredMovies.length !== 1 ? 's' : ''} ({movies.length} total)
-                {:else}
-                  {movies.length} movie{movies.length !== 1 ? 's' : ''} in watchlist
-                {/if}
-              </p>
+      {#if !authState.isAuthenticated && !authState.isAuthenticating}
+        <!-- Pre-authentication message -->
+        <div class="max-w-2xl mx-auto p-8 bg-gradient-to-br from-blue-900/50 to-purple-900/50 backdrop-blur-sm rounded-2xl border border-blue-700/30 shadow-2xl">
+          <div class="mb-6">
+            <div class="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center mb-4">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Ready to Find Your Next Movie?</h3>
+            <p class="text-blue-200 leading-relaxed">
+              Connect to your Plex account to access your watchlist and discover your next perfect movie night. 
+              No manual setup required - just one click to get started!
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-blue-300 text-sm font-bold">1</span>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold mb-1">Connect</h4>
+                <p class="text-blue-200 text-sm">Securely login with your Plex account</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-purple-300 text-sm font-bold">2</span>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold mb-1">Load</h4>
+                <p class="text-purple-200 text-sm">Import your watchlist automatically</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-green-300 text-sm font-bold">3</span>
+              </div>
+              <div>
+                <h4 class="text-white font-semibold mb-1">Discover</h4>
+                <p class="text-green-200 text-sm">Find your perfect movie instantly</p>
+              </div>
             </div>
           </div>
-        {/if}
-      </div>
+        </div>
+      {:else if authState.isAuthenticated}
+        <!-- Authenticated controls -->
+        <div class="space-y-6">
+          {#if movies.length === 0}
+            <button
+              on:click={fetchWatchlist}
+              disabled={loading || loadingImages}
+              class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
+            >
+              {#if loading}
+                Loading from plex.tv...
+              {:else if loadingImages}
+                Loading Images...
+              {:else}
+                Load Watchlist
+              {/if}
+            </button>
+          {/if}
+          
+          {#if movies.length > 0}
+            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <button
+                on:click={selectRandomMovie}
+                disabled={!imagesLoaded || isSpinning || showWinnerPause || (filteredMovies.length === 0 && movies.length > 0)}
+                class="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 text-lg"
+              >
+                <Shuffle size={24} class="{isSpinning ? 'animate-spin' : ''}" />
+                {#if !imagesLoaded}
+                  Loading Images...
+                {:else if isSpinning}
+                  Spinning...
+                {:else if showWinnerPause}
+                  Revealing Winner...
+                {:else if filteredMovies.length === 0 && movies.length > 0}
+                  No Movies Match Filters
+                {:else}
+                  Pick Random Movie
+                {/if}
+              </button>
+              
+              <div class="px-6 py-3 bg-gray-800/60 backdrop-blur-sm rounded-xl border border-gray-700/50">
+                <p class="text-gray-200 font-medium">
+                  🎬 {#if filteredMovies.length > 0 && filteredMovies.length < movies.length}
+                    {filteredMovies.length} filtered movie{filteredMovies.length !== 1 ? 's' : ''} ({movies.length} total)
+                  {:else}
+                    {movies.length} movie{movies.length !== 1 ? 's' : ''} in watchlist
+                  {/if}
+                </p>
+              </div>
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
 
     <!-- Slot Machine Animation -->
@@ -1068,8 +1469,14 @@
 
     <!-- Footer -->
     <footer class="text-center mt-16 text-gray-400">
-      <p class="text-lg">Connect to your plex.tv account to randomly select movies from your watchlist</p>
-      <p class="text-sm mt-2 opacity-75">Made with ❤️ for movie lovers</p>
+      <p class="text-lg">
+        {#if authState.isAuthenticated}
+          Enjoying your movie discoveries? Share this app with fellow Plex users!
+        {:else}
+          Seamlessly connect to your Plex account and discover your next favorite movie
+        {/if}
+      </p>
+      <p class="text-sm mt-2 opacity-75">Made with ❤️ for movie lovers • Powered by Plex</p>
     </footer>
   </div>
 </main>
