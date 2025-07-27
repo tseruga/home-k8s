@@ -1,0 +1,31 @@
+{
+	"name": "plex-movie-randomizer",
+	"private": true,
+	"version": "0.0.1",
+	"description": "A one-page Svelte app that randomly selects movies from your Plex watchlist",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-static": "^3.0.8",
+		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.6",
+		"svelte": "^4.2.0",
+		"svelte-check": "^3.6.0",
+		"tailwindcss": "^3.4.17",
+		"typescript": "^5.0.0",
+		"vite": "^5.0.0"
+	},
+	"dependencies": {
+		"lucide-svelte": "^0.400.0"
+	}
+}

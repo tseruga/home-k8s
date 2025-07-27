@@ -1,0 +1,34 @@
+{{- if .Values.app.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.app.name }}-ingress
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    chart: {{ include "plex-movie-randomizer.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  {{- with .Values.app.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.app.ingress.tls }}
+  tls:
+  - hosts:
+    - {{ .Values.app.ingress.host }}
+    secretName: {{ .Values.app.name }}-tls
+  {{- end }}
+  rules:
+  - host: {{ .Values.app.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.name }}
+            port: 
+              number: {{ .Values.app.service.port }}
+{{- end }} 
