@@ -405,17 +405,31 @@
         const metadata = container.Metadata || [];
         const totalSize = container.totalSize || 0;
         
-        console.log(`plex.tv API returned ${metadata.length} movies in this batch (total: ${totalSize})`);
+        console.log(`plex.tv API returned ${metadata.length} items in this batch (total: ${totalSize})`);
         
-        // Debug: Log the first movie's structure to see available fields for ratingKey extraction
+        // Debug: Log the first item's structure to see available fields
         if (metadata.length > 0) {
-          console.log('Sample movie data structure:', metadata[0]);
+          console.log('Sample item data structure:', metadata[0]);
           console.log('Available fields:', Object.keys(metadata[0]));
+          console.log('Item type:', metadata[0].type, 'Library type:', metadata[0].librarySectionType);
         }
 
         // Process each movie from the API response (basic data only)
         const batchMovies: Movie[] = metadata
-          .filter((item: any) => item.title) // Ensure we have a title
+          .filter((item: any) => {
+            // Ensure we have a title and explicitly exclude TV shows
+            if (!item.title) return false;
+            
+            // Additional safety filters to exclude TV shows
+            if (item.type === 'show' || item.type === 'series') return false;
+            if (item.librarySectionType === 'show') return false;
+            if (item.Media && item.Media.some((media: any) => media.videoResolution && item.episodeCount)) return false;
+            
+            // Only include if it's explicitly a movie or has movie-like characteristics
+            return item.type === 'movie' || 
+                   item.librarySectionType === 'movie' || 
+                   (!item.type && !item.episodeCount && !item.seasonCount);
+          })
           .map((item: any) => {
             const movie: Movie = {
               title: item.title,
@@ -445,6 +459,13 @@
 
             return movie;
           });
+
+        // Log filtering results for debugging
+        const originalCount = metadata.length;
+        const filteredCount = batchMovies.length;
+        if (originalCount !== filteredCount) {
+          console.log(`Filtered ${originalCount - filteredCount} non-movie items from batch (${filteredCount} movies kept)`);
+        }
 
         allMovies.push(...batchMovies);
         console.log(`Added ${batchMovies.length} movies. Total so far: ${allMovies.length}`);

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    chart: {{ include "plex-movie-randomizer.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.app.service.type }}
+  ports:
+    - port: {{ .Values.app.service.port }}
+      targetPort: {{ .Values.app.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.app.name }}
+    release: {{ .Release.Name }} 

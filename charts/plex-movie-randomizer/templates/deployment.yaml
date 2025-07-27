@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    chart: {{ include "plex-movie-randomizer.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.app.name }}
+        image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+        imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.app.service.targetPort }}
+          protocol: TCP
+        {{- if .Values.app.healthCheck.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.app.healthCheck.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.app.healthCheck.initialDelaySeconds }}
+          periodSeconds: {{ .Values.app.healthCheck.periodSeconds }}
+          timeoutSeconds: {{ .Values.app.healthCheck.timeoutSeconds }}
+          failureThreshold: {{ .Values.app.healthCheck.failureThreshold }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.app.healthCheck.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.app.healthCheck.initialDelaySeconds }}
+          periodSeconds: {{ .Values.app.healthCheck.periodSeconds }}
+          timeoutSeconds: {{ .Values.app.healthCheck.timeoutSeconds }}
+          failureThreshold: {{ .Values.app.healthCheck.failureThreshold }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.app.resources | nindent 10 }}
+      restartPolicy: Always 
