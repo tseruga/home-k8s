@@ -20,7 +20,7 @@ spec:
       name: plex-movie-randomizer
       image:
         repository: tseruga/plex-movie-randomizer
-        tag: v1.0.0
+        tag: latest
         pullPolicy: Always
       
       replicas: 1
