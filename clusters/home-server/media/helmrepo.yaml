@@ -7,3 +7,13 @@ metadata:
 spec:
   interval: 1m0s
   url: https://k8s-at-home.com/charts/
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: truecharts
+  namespace: media
+spec:
+  type: oci
+  interval: 1m0s
+  url: oci://tccr.io/truecharts
