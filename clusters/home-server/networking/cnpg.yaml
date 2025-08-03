@@ -15,4 +15,5 @@ spec:
         namespace: networking
   interval: 1m
   values:
-    installCRDs: true
+    crds:
+      create: true
