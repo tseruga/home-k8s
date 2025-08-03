@@ -7,3 +7,12 @@ metadata:
 spec:
   interval: 1m0s
   url: https://k8s-at-home.com/charts/
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: k8s-at-home
+  namespace: media
+spec:
+  interval: 1m0s
+  url: oci://tccr.io/truecharts/kometa
