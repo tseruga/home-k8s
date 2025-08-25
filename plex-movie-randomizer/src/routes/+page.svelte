@@ -353,7 +353,7 @@
 
     try {
       // Connect to plex.tv to get user's watchlist (watchlists are stored in the cloud, not on local server)
-      console.log('Fetching watchlist from plex.tv using proper myPlex API...');
+      console.log('Fetching watchlist from plex.tv using updated API endpoints...');
 
       const allMovies: Movie[] = [];
       let start = 0;
@@ -363,23 +363,91 @@
       while (hasMore) {
         console.log(`Fetching batch starting at ${start}...`);
         
-        // Use the proper plex.tv watchlist endpoint
-        const watchlistUrl = new URL('https://metadata.provider.plex.tv/library/sections/watchlist/all');
-        watchlistUrl.searchParams.set('X-Plex-Token', config.token);
-        watchlistUrl.searchParams.set('X-Plex-Container-Start', start.toString());
-        watchlistUrl.searchParams.set('X-Plex-Container-Size', size.toString());
-        watchlistUrl.searchParams.set('libtype', 'movie'); // Filter for movies only
-        watchlistUrl.searchParams.set('includeExternalMedia', '1'); // Include external media
+        let watchlistResponse;
+        let apiError;
         
-        const watchlistResponse = await fetch(watchlistUrl.toString(), {
-          headers: {
-            'Accept': 'application/json',
-            'X-Plex-Token': config.token
+        // Try multiple endpoints in order of preference due to 2025 API changes
+        const endpoints = [
+          // NEW 2025: Updated discover API endpoint (replaces metadata.provider.plex.tv)
+          {
+            url: 'https://discover.provider.plex.tv/library/sections/watchlist/all',
+            params: {
+              'X-Plex-Container-Start': start.toString(),
+              'X-Plex-Container-Size': size.toString(),
+              'libtype': 'movie',
+              'includeExternalMedia': '1'
+            }
+          },
+          // Try the playlist-based approach with discover API
+          {
+            url: 'https://discover.provider.plex.tv/pms/playlists',
+            params: {
+              'X-Plex-Container-Start': start.toString(),
+              'X-Plex-Container-Size': size.toString(),
+              'type': '15', // 15 = watchlist type
+              'includeExternalMedia': '1'
+            }
+          },
+          // Fallback: Try direct plex.tv endpoints
+          {
+            url: 'https://plex.tv/pms/playlists',
+            params: {
+              'X-Plex-Container-Start': start.toString(),
+              'X-Plex-Container-Size': size.toString(),
+              'type': '15', // 15 = watchlist type
+              'includeExternalMedia': '1'
+            }
+          },
+          // Legacy endpoint (for backwards compatibility)
+          {
+            url: 'https://metadata.provider.plex.tv/library/sections/watchlist/all',
+            params: {
+              'X-Plex-Container-Start': start.toString(),
+              'X-Plex-Container-Size': size.toString(),
+              'libtype': 'movie',
+              'includeExternalMedia': '1'
+            }
           }
-        });
+        ];
         
-        if (!watchlistResponse.ok) {
-          if (watchlistResponse.status === 401) {
+        for (const endpoint of endpoints) {
+          try {
+            console.log(`Trying endpoint: ${endpoint.url}`);
+            
+            const watchlistUrl = new URL(endpoint.url);
+            // 2025 Security Update: Only add non-token parameters to URL
+            Object.entries(endpoint.params).forEach(([key, value]) => {
+              if (key !== 'X-Plex-Token') {
+                watchlistUrl.searchParams.set(key, value);
+              }
+            });
+            
+            // 2025 Security Update: Token must be in headers only (not URL params)
+            watchlistResponse = await fetch(watchlistUrl.toString(), {
+              headers: {
+                'Accept': 'application/json',
+                'X-Plex-Token': config.token,
+                'X-Plex-Client-Identifier': CLIENT_ID,
+                'X-Plex-Product': APP_NAME,
+                'X-Plex-Version': '1.0.0'
+              }
+            });
+            
+            if (watchlistResponse.ok) {
+              console.log(`Successfully connected using: ${endpoint.url}`);
+              break;
+            } else {
+              console.log(`Endpoint ${endpoint.url} failed with status: ${watchlistResponse.status}`);
+              apiError = `${watchlistResponse.status} ${watchlistResponse.statusText}`;
+            }
+          } catch (fetchError) {
+            console.log(`Endpoint ${endpoint.url} failed with error:`, fetchError);
+            apiError = fetchError instanceof Error ? fetchError.message : 'Network error';
+          }
+        }
+        
+        if (!watchlistResponse || !watchlistResponse.ok) {
+          if (watchlistResponse && watchlistResponse.status === 401) {
             // Token is invalid or expired, need to re-authenticate
             authState.isAuthenticated = false;
             authState.authError = 'Your Plex session has expired. Please login again.';
@@ -387,7 +455,18 @@
             localStorage.removeItem('plexConfig');
             throw new Error('Authentication expired. Please login again.');
           }
-          throw new Error(`Failed to fetch watchlist from plex.tv: ${watchlistResponse.status} ${watchlistResponse.statusText}`);
+          throw new Error(`❌ All watchlist endpoints failed. Last error: ${apiError}. 
+
+🔧 This is likely due to Plex's major API changes in 2025:
+• Endpoints migrated from metadata.provider.plex.tv → discover.provider.plex.tv
+• Enhanced security requirements implemented
+• Remote access now requires Plex Pass or Remote Watch Pass
+
+💡 Troubleshooting steps:
+1. Ensure you have a valid Plex Pass subscription
+2. Check that your token is still valid (try re-authenticating)
+3. Verify your watchlist has movies at plex.tv
+4. Check browser console for detailed error logs`);
         }
 
         const responseText = await watchlistResponse.text();
@@ -398,17 +477,78 @@
           data = JSON.parse(responseText);
         } catch (jsonError) {
           console.error('Failed to parse JSON response from plex.tv:', jsonError);
+          console.error('Response text was:', responseText.substring(0, 500) + '...');
           throw new Error('Invalid response format from plex.tv. Please check your token and try again.');
         }
 
+        // Handle different response formats from different endpoints
         const container = data.MediaContainer || data;
-        const metadata = container.Metadata || [];
-        const totalSize = container.totalSize || 0;
+        let metadata = [];
+        let totalSize = 0;
+
+        // For playlist endpoints, look for playlists or items
+        if (container.Metadata) {
+          metadata = container.Metadata;
+          totalSize = container.totalSize || metadata.length;
+        } else if (container.Playlist && Array.isArray(container.Playlist)) {
+          // If we got playlists, find the watchlist playlist
+          const watchlistPlaylist = container.Playlist.find((playlist: any) => 
+            playlist.title === 'Watchlist' || playlist.type === '15' || playlist.playlistType === 'video'
+          );
+          if (watchlistPlaylist && watchlistPlaylist.leafCount > 0) {
+            // Need to fetch items from the specific watchlist playlist
+            try {
+              // Try discover API first, then fallback to plex.tv
+              const playlistUrls = [
+                `https://discover.provider.plex.tv/pms/playlists/${watchlistPlaylist.ratingKey}/items`,
+                `https://plex.tv/pms/playlists/${watchlistPlaylist.ratingKey}/items`
+              ];
+              
+              let itemsResponse;
+              for (const playlistUrl of playlistUrls) {
+                const playlistItemsUrl = new URL(playlistUrl);
+                playlistItemsUrl.searchParams.set('X-Plex-Container-Start', start.toString());
+                playlistItemsUrl.searchParams.set('X-Plex-Container-Size', size.toString());
+                
+                itemsResponse = await fetch(playlistItemsUrl.toString(), {
+                  headers: {
+                    'Accept': 'application/json',
+                    'X-Plex-Token': config.token,
+                    'X-Plex-Client-Identifier': CLIENT_ID,
+                    'X-Plex-Product': APP_NAME,
+                    'X-Plex-Version': '1.0.0'
+                  }
+                });
+                
+                if (itemsResponse.ok) {
+                  console.log(`Successfully fetched playlist items using: ${playlistUrl}`);
+                  break;
+                }
+              }
+              
+              if (itemsResponse && itemsResponse.ok) {
+                const itemsText = await itemsResponse.text();
+                const itemsData = JSON.parse(itemsText);
+                const itemsContainer = itemsData.MediaContainer || itemsData;
+                metadata = itemsContainer.Metadata || [];
+                totalSize = itemsContainer.totalSize || watchlistPlaylist.leafCount;
+                console.log(`Found watchlist playlist with ${totalSize} total items, fetched ${metadata.length} items`);
+              }
+            } catch (playlistError) {
+              console.warn('Failed to fetch playlist items, using empty result:', playlistError);
+            }
+          } else {
+            console.log('No watchlist playlist found in response');
+          }
+        }
         
-        console.log(`plex.tv API returned ${metadata.length} items in this batch (total: ${totalSize})`);
+        const metadataCount = metadata.length;
+        totalSize = totalSize || metadataCount;
+        
+        console.log(`plex.tv API returned ${metadataCount} items in this batch (total: ${totalSize})`);
         
         // Debug: Log the first item's structure to see available fields
-        if (metadata.length > 0) {
+        if (metadataCount > 0) {
           console.log('Sample item data structure:', metadata[0]);
           console.log('Available fields:', Object.keys(metadata[0]));
           console.log('Item type:', metadata[0].type, 'Library type:', metadata[0].librarySectionType);
@@ -461,7 +601,7 @@
           });
 
         // Log filtering results for debugging
-        const originalCount = metadata.length;
+        const originalCount = metadataCount;
         const filteredCount = batchMovies.length;
         if (originalCount !== filteredCount) {
           console.log(`Filtered ${originalCount - filteredCount} non-movie items from batch (${filteredCount} movies kept)`);
@@ -471,7 +611,7 @@
         console.log(`Added ${batchMovies.length} movies. Total so far: ${allMovies.length}`);
 
         // Check if we should continue fetching
-        const currentBatchSize = metadata.length;
+        const currentBatchSize = metadataCount;
         const hasItemsInBatch = currentBatchSize > 0;
         const totalFetched = start + currentBatchSize;
         const hasMoreBasedOnTotal = totalSize > 0 && totalFetched < totalSize;
@@ -482,6 +622,10 @@
         if (hasItemsInBatch && hasMoreBasedOnTotal && underSafetyLimit) {
           start += currentBatchSize;
           console.log(`Continuing to next batch at ${start}...`);
+          
+          // Add rate limiting delay to respect Plex's 2025 API limits
+          // Wait 1 second between requests to avoid hitting rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } else {
           hasMore = false;
           console.log(`Stopping pagination. Reason: hasItems=${hasItemsInBatch}, hasMore=${hasMoreBasedOnTotal}, underLimit=${underSafetyLimit}`);
