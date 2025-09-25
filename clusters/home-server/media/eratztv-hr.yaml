@@ -4,14 +4,13 @@ metadata:
   name: eratztv
   namespace: media
 spec:
-  interval: 1m
   chart:
     spec:
       chart: eratztv
       version: 9.10.0
       sourceRef:
         kind: HelmRepository
-        name: true-charts
+        name: truecharts-oci
       reconcileStrategy: ChartVersion
   values:
     ingress:
