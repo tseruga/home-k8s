@@ -11,9 +11,8 @@ spec:
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: truecharts
-  namespace: media
+  name: true-charts
+  namespace: flux-system
 spec:
-  type: oci
-  interval: 1m0s
-  url: oci://tccr.io/truecharts
+  interval: 10m
+  url: https://charts.truecharts.org
