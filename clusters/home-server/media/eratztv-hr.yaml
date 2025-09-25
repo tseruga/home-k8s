@@ -12,7 +12,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: true-charts
-        namespace: media
       reconcileStrategy: ChartVersion
   values:
     ingress:
