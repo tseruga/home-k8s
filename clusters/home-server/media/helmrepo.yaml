@@ -9,11 +9,10 @@ spec:
   url: https://k8s-at-home.com/charts/
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
+kind: OCIRepository
 metadata:
   name: truecharts-oci
   namespace: flux-system
 spec:
-  type: oci
   interval: 10m
   url: oci://tccr.io/truecharts

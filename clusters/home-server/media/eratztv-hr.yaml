@@ -10,7 +10,7 @@ spec:
       chart: eratztv
       version: 9.10.0
       sourceRef:
-        kind: HelmRepository
+        kind: OCIRepository
         name: truecharts-oci
       reconcileStrategy: ChartVersion
   values:
