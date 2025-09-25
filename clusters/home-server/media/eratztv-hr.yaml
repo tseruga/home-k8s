@@ -4,6 +4,7 @@ metadata:
   name: eratztv
   namespace: media
 spec:
+  interval: 1m0s
   chart:
     spec:
       chart: eratztv
