@@ -1,0 +1,31 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: eratztv
+  namespace: media
+spec:
+  chart:
+    spec:
+      chart: eratztv
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: true-charts
+      version: 9.10.0
+  interval: 1m0s
+  values:
+    ingress:
+      main:
+        enabled: true
+    service:
+      main:
+        type: LoadBalancer
+        loadBalancerIP: 192.168.1.223
+        externalTrafficPolicy: Local
+    persistence:
+      config:
+        enabled: true
+        type: pvc
+        accessMode: ReadWriteOnce
+        size: 1Gi
