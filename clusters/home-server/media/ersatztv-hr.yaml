@@ -26,3 +26,7 @@ spec:
         type: pvc
         accessMode: ReadWriteOnce
         size: 1Gi
+      nas-tv:
+        enabled: true
+        type: pvc
+        existingClaim: nas-tv-pvc
