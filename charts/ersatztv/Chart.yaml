@@ -1,0 +1,12 @@
+apiVersion: v2
+name: ersatztv
+description: A Helm chart for ErsatzTV - Stream custom live channels using your own media
+type: application
+
+version: 0.0.1
+appVersion: "v25.6.0"
+
+dependencies:
+  - name: common
+    repository: https://library-charts.k8s-at-home.com
+    version: 4.5.2

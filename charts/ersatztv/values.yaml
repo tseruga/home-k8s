@@ -1,0 +1,16 @@
+image:
+  repository: jasongdove/ersatztv
+  tag:
+  pullPolicy: IfNotPresent
+
+service:
+  main:
+    ports:
+      http:
+        port: 8409
+
+ingress:
+  main:
+    enabled: false
+
+persistence: {}

@@ -4,19 +4,17 @@ metadata:
   name: ersatztv
   namespace: media
 spec:
-  interval: 1m0s
+  releaseName: ersatztv
+  interval: 5m
   chart:
     spec:
-      chart: ersatztv
-      version: 9.10.0
+      chart: ./charts/ersatztv
       sourceRef:
-        kind: HelmRepository
-        name: truecharts-oci
-      reconcileStrategy: ChartVersion
+        kind: GitRepository
+        name: github-repo
+        namespace: flux-system
+      interval: 1m
   values:
-    ingress:
-      main:
-        enabled: true
     service:
       main:
         type: LoadBalancer
