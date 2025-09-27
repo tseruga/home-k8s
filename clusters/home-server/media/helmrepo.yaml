@@ -15,4 +15,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: oci://tccr.io/truecharts
+  url: oci://oci.trueforge.org/truecharts/
