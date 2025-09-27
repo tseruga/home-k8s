@@ -12,6 +12,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: truecharts-oci
+        namespace: flux-system
       reconcileStrategy: ChartVersion
   values:
     ingress:
