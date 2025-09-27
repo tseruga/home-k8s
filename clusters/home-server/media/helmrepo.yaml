@@ -13,7 +13,7 @@ kind: HelmRepository
 metadata:
   name: truecharts-oci
   namespace: flux-system
-  type: oci
 spec:
+  type: oci
   interval: 5m
   url: oci://oci.trueforge.org/truecharts/
