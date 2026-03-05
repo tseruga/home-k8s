@@ -1,0 +1,59 @@
+# Pre-deployment steps:
+# 1. Get a free CurseForge API key at https://console.curseforge.com -> API Keys
+# 2. Create the secret on the cluster (do not commit this):
+#      kubectl create secret generic minecraft-secrets \
+#        --namespace minecraft \
+#        --from-literal=CF_API_KEY=<your-key-here>
+# 3. Create the data directory on the host node:
+#      mkdir -p /home/tyler/minecraft
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: minecraft
+  namespace: minecraft
+spec:
+  chart:
+    spec:
+      chart: minecraft
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: itzg
+      version: "4.x.x"
+  interval: 1m0s
+  values:
+    minecraftServer:
+      eula: "TRUE"
+      type: AUTO_CURSEFORGE
+      cfSlug: "prodigium-reforged"
+      # cfFileId: ""  # pin to a specific file ID if desired
+      memory: "6144M"
+      ops: "pigeonbacon"  # comma-separated list of operator usernames
+      maxPlayers: 20
+      difficulty: normal
+      viewDistance: 12
+      whitelist: "pigeonbacon"
+    extraEnv:
+      CF_API_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: minecraft-secrets
+            key: CF_API_KEY
+    service:
+      type: LoadBalancer
+      loadBalancerIP: 192.168.1.225
+      externalTrafficPolicy: Local
+      annotations:
+        metallb.universe.tf/allow-shared-ip: minecraft
+    persistence:
+      dataDir:
+        enabled: true
+        existingClaim: minecraft-pvc
+    resources:
+      requests:
+        memory: "6Gi"
+        cpu: "2"
+      limits:
+        memory: "8Gi"
+        cpu: "4"
