@@ -23,6 +23,8 @@ spec:
       version: "4.x.x"
   interval: 1m0s
   values:
+    image:
+      tag: java17
     minecraftServer:
       eula: "TRUE"
       type: AUTO_CURSEFORGE
