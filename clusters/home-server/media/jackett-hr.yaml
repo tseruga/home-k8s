@@ -17,7 +17,7 @@ spec:
   values:
     image:
       repository: lscr.io/linuxserver/jackett
-      tag: latest
+      tag: 0.24.1464
     service:
       main:
         type: LoadBalancer
