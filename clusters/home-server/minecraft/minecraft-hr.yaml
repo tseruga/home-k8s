@@ -30,7 +30,7 @@ spec:
       type: AUTO_CURSEFORGE
       autoCurseForge:
         slug: "prodigium-reforged"
-        fileId: "7868747"  # 4.2.0411 - pinned to avoid broken KubeJS in 4.2.0412
+        fileId: "7682849"
       memory: "6144M"
       ops: "pigeonbacon"  # comma-separated list of operator usernames
       maxPlayers: 20
