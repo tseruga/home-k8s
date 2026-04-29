@@ -25,9 +25,14 @@ spec:
   values:
     image:
       tag: java17
+    serviceAnnotations:
+      metallb.universe.tf/allow-shared-ip: minecraft
     minecraftServer:
       eula: "TRUE"
       type: AUTO_CURSEFORGE
+      serviceType: LoadBalancer
+      loadBalancerIP: 192.168.1.225
+      externalTrafficPolicy: Local
       autoCurseForge:
         slug: "prodigium-reforged"
         fileId: "7682849"
@@ -43,11 +48,6 @@ spec:
           secretKeyRef:
             name: minecraft-secrets
             key: CF_API_KEY
-    serviceType: LoadBalancer
-    loadBalancerIP: 192.168.1.225
-    externalTrafficPolicy: Local
-    serviceAnnotations:
-      metallb.universe.tf/allow-shared-ip: minecraft
     persistence:
       dataDir:
         enabled: true
