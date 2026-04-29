@@ -35,7 +35,7 @@ spec:
       externalTrafficPolicy: Local
       autoCurseForge:
         slug: "prodigium-reforged"
-        fileId: "7952668"
+        fileId: "7432892"
       memory: "6144M"
       ops: "pigeonbacon"  # comma-separated list of operator usernames
       maxPlayers: 20
