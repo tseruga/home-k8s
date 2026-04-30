@@ -41,7 +41,7 @@ spec:
       maxPlayers: 20
       difficulty: normal
       viewDistance: 12
-      whitelist: "pigeonbacon"
+      whitelist: "pigeonbacon,PeacefulPlumbus"
     extraEnv:
       CF_API_KEY:
         valueFrom:
