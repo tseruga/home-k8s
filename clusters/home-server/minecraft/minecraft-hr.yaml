@@ -36,7 +36,7 @@ spec:
       autoCurseForge:
         slug: "prodigium-reforged"
         fileId: "7432892"
-      memory: "6144M"
+      memory: "9536M"
       ops: "pigeonbacon"  # comma-separated list of operator usernames
       maxPlayers: 20
       difficulty: normal
@@ -54,8 +54,8 @@ spec:
         existingClaim: minecraft-pvc
     resources:
       requests:
-        memory: "6Gi"
+        memory: "10Gi"
         cpu: "2"
       limits:
-        memory: "8Gi"
+        memory: "12Gi"
         cpu: "4"
