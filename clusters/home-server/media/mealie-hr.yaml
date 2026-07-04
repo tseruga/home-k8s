@@ -12,7 +12,24 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: k8s-at-home
-      version: 5.1.2
+      version: 5.1.2                                                                                                                    
+  postRenderers:                                                                                                           
+    - kustomize:                                                                                                           
+        patches:                                                                                                           
+          - target:                                                                                                        
+              kind: Deployment                                                                                             
+              name: mealie                                                                                                 
+            patch: |                                                                                                       
+              apiVersion: apps/v1                                                                                          
+              kind: Deployment                                                                                             
+              metadata:                                                                                                    
+                name: mealie                                                                                               
+              spec:                                                                                                        
+                template:                                                                                                  
+                  spec:
+                    containers:                                                                                            
+                      - name: mealie-api                                                                                   
+                        $patch: delete
   interval: 1m0s
   values:
     image:
