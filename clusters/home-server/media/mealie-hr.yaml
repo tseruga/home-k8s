@@ -40,6 +40,9 @@ spec:
                         startupProbe:
                           tcpSocket:
                             port: 9000
+                        volumeMounts:
+                          - name: api-data
+                            $patch: delete
                     volumes:
                       - name: api-data
                         $patch: delete
@@ -53,8 +56,8 @@ spec:
                 name: mealie
               spec:
                 ports:
-                  - name: http
-                    $patch: delete
+                  - $patch: delete
+                    name: http
           - target:
               kind: Ingress
               name: mealie
