@@ -18,6 +18,18 @@ spec:
     ingress:
       main:
         enabled: true
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+        ingressClassName: nginx
+        hosts:
+          - host: mealie.tseruga.com
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - secretName: mealie-tls
+            hosts:
+              - mealie.tseruga.com
     service:
       main:
         type: LoadBalancer
