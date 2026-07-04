@@ -30,6 +30,9 @@ spec:
                     containers:                                                                                            
                       - name: mealie-api                                                                                   
                         $patch: delete
+                    volumes:
+                      - name: api-data
+                        $patch: delete
   interval: 1m0s
   values:
     image:
