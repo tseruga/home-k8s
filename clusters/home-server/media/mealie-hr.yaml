@@ -15,6 +15,9 @@ spec:
       version: 5.1.2
   interval: 1m0s
   values:
+    image:
+      repository: ghcr.io/mealie-recipes/mealie
+      tag: "v3.20.1"
     ingress:
       main:
         enabled: true
