@@ -27,12 +27,54 @@ spec:
               spec:                                                                                                        
                 template:                                                                                                  
                   spec:
-                    containers:                                                                                            
-                      - name: mealie-api                                                                                   
+                    containers:
+                      - name: mealie-api
                         $patch: delete
+                      - name: mealie
+                        livenessProbe:
+                          tcpSocket:
+                            port: 9000
+                        readinessProbe:
+                          tcpSocket:
+                            port: 9000
+                        startupProbe:
+                          tcpSocket:
+                            port: 9000
                     volumes:
                       - name: api-data
                         $patch: delete
+          - target:
+              kind: Service
+              name: mealie
+            patch: |
+              apiVersion: v1
+              kind: Service
+              metadata:
+                name: mealie
+              spec:
+                ports:
+                  - name: http
+                    $patch: delete
+          - target:
+              kind: Ingress
+              name: mealie
+            patch: |
+              apiVersion: networking.k8s.io/v1
+              kind: Ingress
+              metadata:
+                name: mealie
+              spec:
+                rules:
+                  - host: mealie.tseruga.com
+                    http:
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                          backend:
+                            service:
+                              name: mealie
+                              port:
+                                number: 9000
   interval: 1m0s
   values:
     image:
