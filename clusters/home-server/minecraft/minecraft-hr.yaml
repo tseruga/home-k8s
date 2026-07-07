@@ -7,55 +7,55 @@
 # 3. Create the data directory on the host node:
 #      mkdir -p /home/tyler/minecraft
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: minecraft
-  namespace: minecraft
-spec:
-  chart:
-    spec:
-      chart: minecraft
-      reconcileStrategy: ChartVersion
-      sourceRef:
-        kind: HelmRepository
-        name: itzg
-      version: "4.x.x"
-  interval: 1m0s
-  values:
-    image:
-      tag: java17
-    serviceAnnotations:
-      metallb.universe.tf/allow-shared-ip: minecraft
-    minecraftServer:
-      eula: "TRUE"
-      type: AUTO_CURSEFORGE
-      serviceType: LoadBalancer
-      loadBalancerIP: 192.168.1.225
-      externalTrafficPolicy: Local
-      autoCurseForge:
-        slug: "prodigium-reforged"
-        fileId: "8220415"
-      memory: "15000M"
-      ops: "pigeonbacon"  # comma-separated list of operator usernames
-      maxPlayers: 20
-      difficulty: normal
-      viewDistance: 12
-      whitelist: "pigeonbacon,PeacefulPlumbus,T_BellFiresauce,Party_Marty_"
-    extraEnv:
-      CF_API_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: minecraft-secrets
-            key: CF_API_KEY
-    persistence:
-      dataDir:
-        enabled: true
-        existingClaim: minecraft-pvc
-    resources:
-      requests:
-        memory: "15Gi"
-        cpu: "2"
-      limits:
-        memory: "18Gi"
-        cpu: "4"
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+#   name: minecraft
+#   namespace: minecraft
+# spec:
+#   chart:
+#     spec:
+#       chart: minecraft
+#       reconcileStrategy: ChartVersion
+#       sourceRef:
+#         kind: HelmRepository
+#         name: itzg
+#       version: "4.x.x"
+#   interval: 1m0s
+#   values:
+#     image:
+#       tag: java17
+#     serviceAnnotations:
+#       metallb.universe.tf/allow-shared-ip: minecraft
+#     minecraftServer:
+#       eula: "TRUE"
+#       type: AUTO_CURSEFORGE
+#       serviceType: LoadBalancer
+#       loadBalancerIP: 192.168.1.225
+#       externalTrafficPolicy: Local
+#       autoCurseForge:
+#         slug: "prodigium-reforged"
+#         fileId: "8220415"
+#       memory: "15000M"
+#       ops: "pigeonbacon"  # comma-separated list of operator usernames
+#       maxPlayers: 20
+#       difficulty: normal
+#       viewDistance: 12
+#       whitelist: "pigeonbacon,PeacefulPlumbus,T_BellFiresauce,Party_Marty_"
+#     extraEnv:
+#       CF_API_KEY:
+#         valueFrom:
+#           secretKeyRef:
+#             name: minecraft-secrets
+#             key: CF_API_KEY
+#     persistence:
+#       dataDir:
+#         enabled: true
+#         existingClaim: minecraft-pvc
+#     resources:
+#       requests:
+#         memory: "15Gi"
+#         cpu: "2"
+#       limits:
+#         memory: "18Gi"
+#         cpu: "4"
