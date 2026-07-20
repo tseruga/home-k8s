@@ -40,12 +40,6 @@ spec:
                         startupProbe:
                           tcpSocket:
                             port: 9000
-                        volumeMounts:
-                          - name: api-data
-                            $patch: delete
-                    volumes:
-                      - name: api-data
-                        $patch: delete
           - target:
               kind: Service
               name: mealie
