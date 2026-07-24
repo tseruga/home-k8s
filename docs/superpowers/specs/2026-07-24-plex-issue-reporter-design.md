@@ -54,7 +54,15 @@ calls; the browser only ever talks to this app's own server.
   the client; no CORS concerns (server-to-server).
 - **State:** none. Sessions live in a signed cookie.
 
-### Configuration (k8s Secret, `infra/secrets/`, uncommitted)
+### Configuration
+
+All config is injected as environment variables. Sensitive values come from a
+**plain Kubernetes Secret created out-of-band** (`kubectl create secret`, kept
+out of git — matching the gitignored `infra/secrets/*` intent) and consumed by
+the Deployment via `envFrom`. Non-sensitive values (`PUBLIC_APP_URL`) may be
+plaintext in the HelmRelease. This establishes a new pattern for the repo, which
+currently commits env values in cleartext; nothing else in the cluster uses
+`secretKeyRef`/`envFrom` today.
 
 | Var | Purpose |
 |-----|---------|
@@ -195,5 +203,16 @@ no rounded corners, saturated accents, heavy type). `lucide-svelte` for icons.
 - New custom Helm chart under `charts/plex-issue-reporter/` (modeled on
   `charts/ranked-choice-vote/`), HelmRelease at
   `clusters/home-server/media/plex-issue-reporter-hr.yaml`.
-- Secret in `infra/secrets/` (uncommitted), injected via env.
-- Ingress + TLS mirror `clusters/home-server/media/overseerr-hr.yaml`.
+- Secrets: a plain k8s Secret created manually via `kubectl` (never committed),
+  consumed with `envFrom`. New pattern for this repo (see Configuration).
+- Ingress + TLS: cert-manager auto-provisions the `<app>-tls` secret via the
+  `letsencrypt-prod` ClusterIssuer + nginx, mirroring `overseerr` and the
+  `ranked-choice-vote` chart's `frontend-ingress.yaml`.
+- Custom local chart pulled from the `github-repo` GitRepository (branch `main`)
+  in `flux-system`; Flux auto-discovers any `*-hr.yaml` dropped into
+  `clusters/home-server/media/` (recursive, no kustomization to edit).
+- This is the repo's **first `adapter-node` (Node server) app** — container port
+  `3000`, and a small health `+server.ts` route for the probes (adapter-node has
+  no health route by default). Images are built and pushed **manually** to
+  Docker Hub as `tseruga/plex-issue-reporter:<tag>` (no CI in this repo), then
+  the HelmRelease tag is committed for Flux to reconcile.
