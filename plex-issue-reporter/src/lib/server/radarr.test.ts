@@ -31,22 +31,29 @@ describe('radarr client', () => {
     expect(JSON.parse(call[1].body)).toEqual({ name: 'MoviesSearch', movieIds: [1] });
   });
 
-  it('blocklists the release, deletes the file, and searches when a grabbed file exists', async () => {
+  it('deletes the file before blocklisting and searching so the re-search sees a missing movie', async () => {
+    const order: string[] = [];
     const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
+      order.push(`${init?.method ?? 'GET'} ${url.replace('http://r', '')}`);
       if (url.startsWith('http://r/api/v3/history/movie')) return json([{ id: 900, eventType: 'grabbed' }]);
       return json({});
     });
     const client = createRadarrClient({ baseUrl: 'http://r', apiKey: 'k', fetchFn: fetchFn as unknown as typeof fetch });
     const action = await client.remediate(bad);
     expect(action).toBe('blocklist-and-regrab');
-    // blocklist the bad release so it isn't grabbed again
+    // all three happen
     expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://r/api/v3/history/failed/900' && i.method === 'POST')).toBe(true);
-    // delete the existing file so the movie is "missing" — otherwise Radarr rejects
-    // any replacement as "not an upgrade" and nothing is grabbed
     expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://r/api/v3/moviefile/55' && i.method === 'DELETE')).toBe(true);
-    // and kick off a search for a replacement
     const searchCall = fetchFn.mock.calls.find(([u]) => u === 'http://r/api/v3/command')!;
     expect(JSON.parse(searchCall[1].body as string)).toEqual({ name: 'MoviesSearch', movieIds: [2] });
+    // and the delete comes FIRST — otherwise history/failed auto-re-searches while the
+    // file still exists, grabs nothing, and dedupes our explicit MoviesSearch away
+    const delIdx = order.indexOf('DELETE /api/v3/moviefile/55');
+    const failIdx = order.indexOf('POST /api/v3/history/failed/900');
+    const searchIdx = order.findIndex((c) => c.endsWith('/api/v3/command'));
+    expect(delIdx).toBeGreaterThanOrEqual(0);
+    expect(delIdx).toBeLessThan(failIdx);
+    expect(delIdx).toBeLessThan(searchIdx);
   });
 
   it('falls back to delete-file + search when a file exists but no grabbed history', async () => {
