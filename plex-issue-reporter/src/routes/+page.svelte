@@ -1,0 +1,122 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { enhance } from '$app/forms';
+  import { flushSync } from 'svelte';
+  import { Film, Tv, Search } from 'lucide-svelte';
+  import NbButton from '$lib/components/NbButton.svelte';
+  import ReportModal from '$lib/components/ReportModal.svelte';
+  import Toast from '$lib/components/Toast.svelte';
+  import type { ActionData } from './$types';
+
+  type CatalogMovie = { id: number; title: string; year: number };
+  type CatalogSeries = { id: number; title: string };
+
+  let { form }: { form: ActionData } = $props();
+  let tab = $state<'movies' | 'shows'>('movies');
+  let query = $state('');
+  let modalOpen = $state(false);
+  let selected = $state<{ id: number; label: string } | null>(null);
+  let toast = $state('');
+
+  let catMovies = $state<CatalogMovie[]>([]);
+  let catSeries = $state<CatalogSeries[]>([]);
+  let status = $state<'loading' | 'ready' | 'error'>('loading');
+
+  async function loadCatalog() {
+    status = 'loading';
+    try {
+      const res = await fetch('/api/catalog');
+      if (res.redirected && new URL(res.url).pathname === '/login') {
+        window.location.href = '/login';
+        return;
+      }
+      if (!res.ok) throw new Error(`catalog ${res.status}`);
+      const cat = (await res.json()) as { movies: CatalogMovie[]; series: CatalogSeries[] };
+      catMovies = cat.movies;
+      catSeries = cat.series;
+      status = 'ready';
+    } catch (e) {
+      console.error('[catalog]', e);
+      status = 'error';
+    }
+  }
+  onMount(loadCatalog);
+
+  const q = $derived(query.trim().toLowerCase());
+  const movies = $derived(q === '' ? [] : catMovies.filter((m) => m.title.toLowerCase().includes(q)));
+  const shows = $derived(q === '' ? [] : catSeries.filter((s) => s.title.toLowerCase().includes(q)));
+
+  $effect(() => { if (form?.success) { toast = form.message; setTimeout(() => (toast = ''), 5000); } });
+
+  let submitForm = $state<HTMLFormElement>();
+  let noteValue = $state('');
+
+  function openReport(id: number, label: string) { selected = { id, label }; modalOpen = true; }
+  function doSubmit(note: string) {
+    flushSync(() => { noteValue = note; modalOpen = false; });
+    submitForm?.requestSubmit();
+  }
+</script>
+
+<main class="max-w-2xl mx-auto p-4">
+  <header class="flex justify-between items-center bg-nb-yellow border-2 border-black shadow-nb px-3 py-2 mb-4">
+    <span class="text-lg">MEDIA ISSUES</span>
+    <form method="POST" action="/logout"><button class="text-xs font-black bg-black text-white px-2 py-1">LOG OUT</button></form>
+  </header>
+
+  <div class="flex gap-2 mb-3">
+    <button onclick={() => (tab = 'movies')} class="border-2 border-black px-3 py-1 font-black text-sm {tab==='movies' ? 'bg-nb-yellow shadow-nb-sm' : 'bg-white'}"><Film size={14} class="inline" /> MOVIES</button>
+    <button onclick={() => (tab = 'shows')} class="border-2 border-black px-3 py-1 font-black text-sm {tab==='shows' ? 'bg-nb-yellow shadow-nb-sm' : 'bg-white'}"><Tv size={14} class="inline" /> TV SHOWS</button>
+  </div>
+
+  <div class="flex items-center gap-2 bg-white border-2 border-black shadow-nb px-3 py-2 mb-2">
+    <Search size={16} />
+    <input bind:value={query} placeholder="search titles…" class="flex-1 outline-none font-bold" />
+  </div>
+
+  {#if q !== '' && status === 'loading'}
+    <p class="font-bold text-gray-600 mb-4">Indexing your library…</p>
+  {/if}
+
+  {#if q === ''}
+    <p class="flex items-center gap-2 font-bold text-gray-600 mt-6">
+      <Search size={16} /> Start typing to search your library
+    </p>
+  {:else if status === 'error'}
+    <div class="bg-nb-pink border-2 border-black p-3 mt-2">
+      <p class="font-black mb-2">Couldn't load your library.</p>
+      <NbButton variant="white" onclick={loadCatalog}>RETRY</NbButton>
+    </div>
+  {:else if status === 'ready'}
+    {#if tab === 'movies'}
+      {#each movies as m (m.id)}
+        <div class="flex items-center gap-3 bg-white border-2 border-black shadow-nb p-3 mb-3">
+          <div class="flex-1 font-black">{m.title} ({m.year})</div>
+          <NbButton onclick={() => openReport(m.id, `${m.title} (${m.year})`)}>REPORT</NbButton>
+        </div>
+      {:else}
+        <p class="font-bold text-gray-600">No movies match.</p>
+      {/each}
+    {:else}
+      {#each shows as s (s.id)}
+        <a href={`/shows/${s.id}`} class="flex items-center gap-3 bg-white border-2 border-black shadow-nb p-3 mb-3">
+          <div class="flex-1 font-black">{s.title}</div>
+          <span class="font-black text-sm">→</span>
+        </a>
+      {:else}
+        <p class="font-bold text-gray-600">No shows match.</p>
+      {/each}
+    {/if}
+  {/if}
+
+  {#if form?.error}<p class="bg-nb-pink border-2 border-black p-2 font-black mt-3">{form.error}</p>{/if}
+</main>
+
+<ReportModal open={modalOpen} mediaLabel={selected?.label ?? ''} onSubmit={doSubmit} onClose={() => (modalOpen = false)} />
+
+<form method="POST" action="?/report" use:enhance bind:this={submitForm} class="hidden">
+  <input type="hidden" name="movieId" value={selected?.id ?? ''} />
+  <input type="hidden" name="note" value={noteValue} />
+</form>
+
+<Toast message={toast} />

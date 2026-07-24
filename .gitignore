@@ -128,3 +128,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# superpowers brainstorming companion
+.superpowers/
+
+# Root-level Python boilerplate ignores `lib/` at any depth, which
+# collides with SvelteKit's $lib convention (src/lib). Un-ignore it
+# for plex-issue-reporter so app code under src/lib is tracked.
+!plex-issue-reporter/src/lib/
