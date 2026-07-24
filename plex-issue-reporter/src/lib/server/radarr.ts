@@ -38,14 +38,18 @@ export function createRadarrClient(cfg: { baseUrl: string; apiKey: string; fetch
       await searchMovie(movie.id);
       return action;
     }
+    // The file exists but is bad. Blocklist the release it came from (if we grabbed
+    // it) so it isn't picked again, then DELETE the file so Radarr sees the movie as
+    // missing. Without the delete, the existing file still meets the quality-profile
+    // cutoff and every replacement is rejected as "not an upgrade" — at both grab and
+    // import time — so nothing is ever re-downloaded. Finally, search for a new copy.
     const history = (await (await req(`/api/v3/history/movie?movieId=${movie.id}`)).json()) as HistoryRecord[];
     const grabbed = history.find((h) => h.eventType === 'grabbed');
     if (grabbed) {
       await req(`/api/v3/history/failed/${grabbed.id}`, { method: 'POST' });
-    } else {
-      if (movie.movieFileId) await req(`/api/v3/moviefile/${movie.movieFileId}`, { method: 'DELETE' });
-      await searchMovie(movie.id);
     }
+    if (movie.movieFileId) await req(`/api/v3/moviefile/${movie.movieFileId}`, { method: 'DELETE' });
+    await searchMovie(movie.id);
     return action;
   }
 

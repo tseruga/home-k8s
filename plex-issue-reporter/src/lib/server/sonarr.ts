@@ -54,12 +54,16 @@ export function createSonarrClient(cfg: { baseUrl: string; apiKey: string; fetch
       | { records: HistoryRecord[] };
     const history = Array.isArray(body) ? body : (body.records ?? []);
     const grabbed = history.find((h) => h.eventType === 'grabbed');
+    // Blocklist the release we grabbed this episode from (if any) so it isn't picked
+    // again, then DELETE the file so Sonarr sees the episode as missing. Without the
+    // delete, the existing file still meets the quality-profile cutoff and every
+    // replacement is rejected as "not an upgrade" — at both grab and import time — so
+    // nothing is ever re-downloaded. Finally, search for a new copy.
     if (grabbed) {
       await req(`/api/v3/history/failed/${grabbed.id}`, { method: 'POST' });
-    } else {
-      if (ep.episodeFileId) await req(`/api/v3/episodefile/${ep.episodeFileId}`, { method: 'DELETE' });
-      await searchEpisodes([ep.id]);
     }
+    if (ep.episodeFileId) await req(`/api/v3/episodefile/${ep.episodeFileId}`, { method: 'DELETE' });
+    await searchEpisodes([ep.id]);
     return action;
   }
 
