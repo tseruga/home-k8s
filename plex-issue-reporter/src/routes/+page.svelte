@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { flushSync } from 'svelte';
   import { Film, Tv, Search } from 'lucide-svelte';
   import NbButton from '$lib/components/NbButton.svelte';
   import ReportModal from '$lib/components/ReportModal.svelte';
@@ -22,7 +23,10 @@
   let noteValue = $state('');
 
   function openReport(id: number, label: string) { selected = { id, label }; modalOpen = true; }
-  function doSubmit(note: string) { noteValue = note; modalOpen = false; submitForm?.requestSubmit(); }
+  function doSubmit(note: string) {
+    flushSync(() => { noteValue = note; modalOpen = false; });
+    submitForm?.requestSubmit();
+  }
 </script>
 
 <main class="max-w-2xl mx-auto p-4">
