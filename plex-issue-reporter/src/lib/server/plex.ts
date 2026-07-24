@@ -43,9 +43,9 @@ export async function getUser(authToken: string, clientId: string, fetchFn: type
   return { id: body.id, username: body.username, email: body.email };
 }
 
-export async function listAllowedUserIds(ownerToken: string, fetchFn: typeof fetch = fetch): Promise<Set<number>> {
+export async function listAllowedUserIds(ownerToken: string, clientId: string, fetchFn: typeof fetch = fetch): Promise<Set<number>> {
   const res = await fetchFn('https://plex.tv/api/v2/friends', {
-    headers: { Accept: 'application/json', 'X-Plex-Token': ownerToken }
+    headers: { ...PLEX_HEADERS(clientId), 'X-Plex-Token': ownerToken }
   });
   if (!res.ok) throw new Error(`Plex listAllowedUserIds failed: ${res.status}`);
   const body = (await res.json()) as Array<{ id: number }>;

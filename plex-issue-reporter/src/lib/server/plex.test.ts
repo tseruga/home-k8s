@@ -41,9 +41,11 @@ describe('plex auth', () => {
 describe('plex whitelist', () => {
   it('collects shared user ids', async () => {
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse([{ id: 7 }, { id: 8 }]));
-    const ids = await listAllowedUserIds('ot', fetchFn as unknown as typeof fetch);
+    const ids = await listAllowedUserIds('ot', 'cid', fetchFn as unknown as typeof fetch);
     expect(ids.has(7)).toBe(true);
     expect(ids.has(8)).toBe(true);
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(init.headers['X-Plex-Client-Identifier']).toBe('cid');
   });
 
   it('allows shared users and the owner, rejects others', () => {
