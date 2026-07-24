@@ -1,15 +1,6 @@
 import { fail } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
-import { getClients, reportMovieIssue } from '$lib/server/media';
-
-export const load: PageServerLoad = async () => {
-  const { radarr, sonarr } = getClients();
-  const [movies, series] = await Promise.all([radarr.listMovies(), sonarr.listSeries()]);
-  return {
-    movies: movies.map((m) => ({ id: m.id, title: m.title, year: m.year })),
-    series: series.map((s) => ({ id: s.id, title: s.title }))
-  };
-};
+import type { Actions } from './$types';
+import { reportMovieIssue } from '$lib/server/media';
 
 export const actions: Actions = {
   report: async ({ request, locals }) => {
