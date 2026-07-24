@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: plex-issue-reporter
+  namespace: media
+spec:
+  releaseName: plex-issue-reporter
+  interval: 5m
+  chart:
+    spec:
+      chart: ./charts/plex-issue-reporter
+      sourceRef:
+        kind: GitRepository
+        name: github-repo
+        namespace: flux-system
+      interval: 1m
+  values:
+    namespace: media
+    app:
+      name: plex-issue-reporter
+      image:
+        repository: tseruga/plex-issue-reporter
+        tag: latest
+        pullPolicy: Always
+      containerPort: 3000
+      secretName: plex-issue-reporter-secrets
+      env:
+        PUBLIC_APP_URL: https://issues.tseruga.com
+      service:
+        type: ClusterIP
+        port: 80
+      ingress:
+        enabled: true
+        host: issues.tseruga.com
+        annotations:
+          kubernetes.io/ingress.class: nginx
+          cert-manager.io/cluster-issuer: "letsencrypt-prod"
