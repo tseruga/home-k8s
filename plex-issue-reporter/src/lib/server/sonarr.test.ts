@@ -27,7 +27,7 @@ describe('sonarr client', () => {
   });
 
   it('marks a bad episode grabbed-history failed', async () => {
-    const fetchFn = vi.fn(async (url: string) => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://s/api/v3/history')) return json([{ id: 800, eventType: 'grabbed' }]);
       return json({});
     });
@@ -37,7 +37,7 @@ describe('sonarr client', () => {
   });
 
   it('remediates a whole season then fires SeasonSearch', async () => {
-    const fetchFn = vi.fn(async (url: string) => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://s/api/v3/episode?seriesId')) return json([missingEp, badEp]);
       if (url.startsWith('http://s/api/v3/history')) return json([{ id: 801, eventType: 'grabbed' }]);
       return json({});
@@ -46,7 +46,7 @@ describe('sonarr client', () => {
     const result = await c.remediateSeason(1, 2);
     expect(result.perEpisode).toContain('search');
     expect(result.perEpisode).toContain('blocklist-and-regrab');
-    const seasonCall = fetchFn.mock.calls.find(([u, i]) => u === 'http://s/api/v3/command' && JSON.parse(i.body).name === 'SeasonSearch')!;
-    expect(JSON.parse(seasonCall[1].body)).toEqual({ name: 'SeasonSearch', seriesId: 1, seasonNumber: 2 });
+    const seasonCall = fetchFn.mock.calls.find(([u, i]) => u === 'http://s/api/v3/command' && JSON.parse(i.body as string).name === 'SeasonSearch')!;
+    expect(JSON.parse(seasonCall[1].body as string)).toEqual({ name: 'SeasonSearch', seriesId: 1, seasonNumber: 2 });
   });
 });

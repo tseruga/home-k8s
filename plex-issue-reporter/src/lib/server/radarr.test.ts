@@ -32,7 +32,7 @@ describe('radarr client', () => {
   });
 
   it('marks the latest grabbed history failed when a file exists', async () => {
-    const fetchFn = vi.fn(async (url: string) => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://r/api/v3/history/movie')) return json([{ id: 900, eventType: 'grabbed' }]);
       return json({});
     });
@@ -43,7 +43,7 @@ describe('radarr client', () => {
   });
 
   it('falls back to delete-file + search when a file exists but no grabbed history', async () => {
-    const fetchFn = vi.fn(async (url: string) => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://r/api/v3/history/movie')) return json([]);
       return json({});
     });
