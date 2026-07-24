@@ -20,7 +20,7 @@ spec:
       name: plex-issue-reporter
       image:
         repository: tseruga/plex-issue-reporter
-        tag: latest
+        tag: v0.1.0
         pullPolicy: Always
       containerPort: 3000
       secretName: plex-issue-reporter-secrets
