@@ -15,6 +15,8 @@
   let seasonForm = $state<HTMLFormElement>();
   let epId = $state<number>(0);
   let seasonNo = $state<number>(0);
+  let openSeason = $state<number | null>(null);
+  function toggleSeason(n: number) { openSeason = openSeason === n ? null : n; }
 
   $effect(() => { if (form?.success) { toast = form.message; setTimeout(() => (toast = ''), 5000); } });
 
@@ -38,15 +40,26 @@
 
   {#each data.seasons as season (season.seasonNumber)}
     <div class="flex justify-between items-center bg-nb-yellow border-2 border-black shadow-nb px-3 py-2 mb-2">
-      <span class="font-black">SEASON {season.seasonNumber}</span>
+      <button
+        type="button"
+        onclick={() => toggleSeason(season.seasonNumber)}
+        aria-expanded={openSeason === season.seasonNumber}
+        class="flex items-center gap-2 font-black"
+      >
+        <span class="inline-block transition-transform {openSeason === season.seasonNumber ? 'rotate-90' : ''}">▶</span>
+        SEASON {season.seasonNumber}
+        <span class="text-xs font-bold text-gray-700">({season.episodes.length} eps)</span>
+      </button>
       <NbButton variant="white" onclick={() => reportSeason(season.seasonNumber, `${data.series.title} · S${season.seasonNumber} (full season)`)}>REPORT WHOLE SEASON</NbButton>
     </div>
-    {#each season.episodes as ep (ep.id)}
-      <div class="flex items-center gap-3 bg-white border-2 border-black shadow-nb-sm p-2 mb-2 ml-3">
-        <div class="flex-1 font-black text-sm">S{season.seasonNumber}E{ep.episodeNumber} · {ep.title}</div>
-        <NbButton onclick={() => reportEpisode(ep.id, `${data.series.title} · S${season.seasonNumber}E${ep.episodeNumber}`)}>REPORT</NbButton>
-      </div>
-    {/each}
+    {#if openSeason === season.seasonNumber}
+      {#each season.episodes as ep (ep.id)}
+        <div class="flex items-center gap-3 bg-white border-2 border-black shadow-nb-sm p-2 mb-2 ml-3">
+          <div class="flex-1 font-black text-sm">S{season.seasonNumber}E{ep.episodeNumber} · {ep.title}</div>
+          <NbButton onclick={() => reportEpisode(ep.id, `${data.series.title} · S${season.seasonNumber}E${ep.episodeNumber}`)}>REPORT</NbButton>
+        </div>
+      {/each}
+    {/if}
   {/each}
 
   {#if form?.error}<p class="bg-nb-pink border-2 border-black p-2 font-black mt-3">{form.error}</p>{/if}
