@@ -195,6 +195,31 @@ no rounded corners, saturated accents, heavy type). `lucide-svelte` for icons.
 - **Auth:** whitelisted vs non-whitelisted; expired/tampered cookie rejected.
 - Test-first (TDD). No live calls to the real Radarr/Sonarr in the suite.
 
+## Local development
+
+The app must be fully runnable on the dev machine before any cluster deploy,
+with secrets supplied via environment variables:
+
+- **`npm run dev`** (Vite dev server, default `http://localhost:5173`). Vite
+  auto-loads a **gitignored `.env`** at the app root; server-only secrets are
+  read via `$env/dynamic/private` (never `$env/static/public`), so they stay
+  server-side exactly as in production.
+- **Same env var names** as the k8s Secret (`RADARR_URL`, `RADARR_API_KEY`,
+  `SONARR_URL`, `SONARR_API_KEY`, `PLEX_OWNER_TOKEN`, `PLEX_MACHINE_IDENTIFIER`,
+  `PLEX_CLIENT_ID`, `PUBLIC_APP_URL`, `DISCORD_WEBHOOK_URL`, `SESSION_SECRET`),
+  so local and cluster behavior match. Locally, set
+  `PUBLIC_APP_URL=http://localhost:5173` so the Plex OAuth `forwardUrl` returns
+  to the dev server — the PIN flow works against localhost.
+- A committed **`.env.example`** lists every required var (names only, no
+  values) as living documentation. The real `.env` is gitignored (the repo
+  already ignores `.env*`).
+- The dev machine is on the home LAN, so it reaches Radarr (`192.168.1.211`) and
+  Sonarr (`192.168.1.207`) directly — same as in-cluster.
+- **Optional production smoke test:** `docker build` then
+  `docker run -p 3000:3000 --env-file .env plex-issue-reporter:local` to exercise
+  the real adapter-node image locally before pushing (mirrors
+  `plex-movie-randomizer/build.sh`).
+
 ## Deployment notes
 
 - SvelteKit `adapter-node` requires a Node runtime container (not the existing
