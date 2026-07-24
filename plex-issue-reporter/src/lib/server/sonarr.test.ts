@@ -67,7 +67,7 @@ describe('sonarr client', () => {
     expect(JSON.parse(searchCall[1].body as string)).toEqual({ name: 'EpisodeSearch', episodeIds: [11] });
   });
 
-  it('remediates a whole season then fires SeasonSearch', async () => {
+  it('clears bad episodes and fires a single SeasonSearch (no per-episode searches)', async () => {
     const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://s/api/v3/episode?seriesId')) return json([missingEp, badEp]);
       if (url.startsWith('http://s/api/v3/history')) return json([{ id: 801, eventType: 'grabbed' }]);
@@ -77,7 +77,14 @@ describe('sonarr client', () => {
     const result = await c.remediateSeason(1, 2);
     expect(result.perEpisode).toContain('search');
     expect(result.perEpisode).toContain('blocklist-and-regrab');
-    const seasonCall = fetchFn.mock.calls.find(([u, i]) => u === 'http://s/api/v3/command' && JSON.parse(i.body as string).name === 'SeasonSearch')!;
+    // the bad episode is still cleared: its release blocklisted and its file deleted
+    expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://s/api/v3/history/failed/801' && i.method === 'POST')).toBe(true);
+    expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://s/api/v3/episodefile/77' && i.method === 'DELETE')).toBe(true);
+    // searching is delegated to ONE SeasonSearch so Sonarr can grab a season pack
+    const commandCalls = fetchFn.mock.calls.filter(([u]) => u === 'http://s/api/v3/command');
+    const commandNames = commandCalls.map(([, i]) => JSON.parse(i.body as string).name);
+    expect(commandNames).toEqual(['SeasonSearch']);
+    const seasonCall = commandCalls[0];
     expect(JSON.parse(seasonCall[1].body as string)).toEqual({ name: 'SeasonSearch', seriesId: 1, seasonNumber: 2 });
   });
 });

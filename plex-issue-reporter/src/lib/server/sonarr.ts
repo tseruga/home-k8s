@@ -43,26 +43,26 @@ export function createSonarrClient(cfg: { baseUrl: string; apiKey: string; fetch
     await req('/api/v3/command', { method: 'POST', body: JSON.stringify({ name: 'EpisodeSearch', episodeIds }) });
   }
 
-  async function remediateEpisode(ep: SonarrEpisode): Promise<RemediationAction> {
-    const action = decideAction(ep);
-    if (action === 'search') {
-      await searchEpisodes([ep.id]);
-      return action;
-    }
+  // Blocklist the release a bad episode was grabbed from (if any) so it isn't picked
+  // again, then DELETE the file so Sonarr sees the episode as missing. Without the
+  // delete, the existing file still meets the quality-profile cutoff and every
+  // replacement is rejected as "not an upgrade" — at both grab and import time — so
+  // nothing is ever re-downloaded. This does NOT search; callers decide how to search.
+  async function clearBadEpisode(ep: SonarrEpisode): Promise<void> {
     const body = (await (await req(`/api/v3/history?episodeId=${ep.id}`)).json()) as
       | HistoryRecord[]
       | { records: HistoryRecord[] };
     const history = Array.isArray(body) ? body : (body.records ?? []);
     const grabbed = history.find((h) => h.eventType === 'grabbed');
-    // Blocklist the release we grabbed this episode from (if any) so it isn't picked
-    // again, then DELETE the file so Sonarr sees the episode as missing. Without the
-    // delete, the existing file still meets the quality-profile cutoff and every
-    // replacement is rejected as "not an upgrade" — at both grab and import time — so
-    // nothing is ever re-downloaded. Finally, search for a new copy.
     if (grabbed) {
       await req(`/api/v3/history/failed/${grabbed.id}`, { method: 'POST' });
     }
     if (ep.episodeFileId) await req(`/api/v3/episodefile/${ep.episodeFileId}`, { method: 'DELETE' });
+  }
+
+  async function remediateEpisode(ep: SonarrEpisode): Promise<RemediationAction> {
+    const action = decideAction(ep);
+    if (action === 'blocklist-and-regrab') await clearBadEpisode(ep);
     await searchEpisodes([ep.id]);
     return action;
   }
@@ -70,7 +70,14 @@ export function createSonarrClient(cfg: { baseUrl: string; apiKey: string; fetch
   async function remediateSeason(seriesId: number, seasonNumber: number): Promise<{ perEpisode: RemediationAction[] }> {
     const episodes = (await listEpisodes(seriesId)).filter((e) => e.seasonNumber === seasonNumber && e.monitored);
     const perEpisode: RemediationAction[] = [];
-    for (const ep of episodes) perEpisode.push(await remediateEpisode(ep));
+    for (const ep of episodes) {
+      const action = decideAction(ep);
+      if (action === 'blocklist-and-regrab') await clearBadEpisode(ep);
+      perEpisode.push(action);
+    }
+    // Delegate the actual searching to ONE SeasonSearch so Sonarr can grab a season
+    // pack. Per-episode searches would race ahead and grab individual episodes, and
+    // can't match a release an indexer only offers as a full-season pack.
     await req('/api/v3/command', { method: 'POST', body: JSON.stringify({ name: 'SeasonSearch', seriesId, seasonNumber }) });
     return { perEpisode };
   }
