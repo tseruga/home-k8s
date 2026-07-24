@@ -26,6 +26,10 @@
     status = 'loading';
     try {
       const res = await fetch('/api/catalog');
+      if (res.redirected && new URL(res.url).pathname === '/login') {
+        window.location.href = '/login';
+        return;
+      }
       if (!res.ok) throw new Error(`catalog ${res.status}`);
       const cat = (await res.json()) as { movies: CatalogMovie[]; series: CatalogSeries[] };
       catMovies = cat.movies;
