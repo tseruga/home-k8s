@@ -1,0 +1,33 @@
+namespace: media
+
+app:
+  name: plex-issue-reporter
+  image:
+    repository: tseruga/plex-issue-reporter
+    tag: latest
+    pullPolicy: Always
+  replicas: 1
+  containerPort: 3000
+  # Name of a pre-created (out-of-band) Secret holding all sensitive env vars.
+  secretName: plex-issue-reporter-secrets
+  # Non-sensitive env injected as plaintext.
+  env:
+    PUBLIC_APP_URL: https://issues.tseruga.com
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: true
+    host: issues.tseruga.com
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  resources:
+    limits: { cpu: 300m, memory: 256Mi }
+    requests: { cpu: 100m, memory: 128Mi }
+  healthCheck:
+    path: /healthz
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
