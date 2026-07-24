@@ -4,7 +4,7 @@ import { loadConfig } from './config';
 const full = {
   RADARR_URL: 'http://r', RADARR_API_KEY: 'rk',
   SONARR_URL: 'http://s', SONARR_API_KEY: 'sk',
-  PLEX_OWNER_TOKEN: 'ot', PLEX_MACHINE_IDENTIFIER: 'mid', PLEX_CLIENT_ID: 'cid',
+  PLEX_OWNER_TOKEN: 'ot', PLEX_CLIENT_ID: 'cid',
   PUBLIC_APP_URL: 'http://localhost:5173', DISCORD_WEBHOOK_URL: 'http://d', SESSION_SECRET: 'secret'
 };
 

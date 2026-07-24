@@ -49,7 +49,10 @@ export function createSonarrClient(cfg: { baseUrl: string; apiKey: string; fetch
       await searchEpisodes([ep.id]);
       return action;
     }
-    const history = (await (await req(`/api/v3/history?episodeId=${ep.id}`)).json()) as HistoryRecord[];
+    const body = (await (await req(`/api/v3/history?episodeId=${ep.id}`)).json()) as
+      | HistoryRecord[]
+      | { records: HistoryRecord[] };
+    const history = Array.isArray(body) ? body : (body.records ?? []);
     const grabbed = history.find((h) => h.eventType === 'grabbed');
     if (grabbed) {
       await req(`/api/v3/history/failed/${grabbed.id}`, { method: 'POST' });

@@ -11,7 +11,6 @@ kubectl create secret generic plex-issue-reporter-secrets -n media \
   --from-literal=SONARR_URL=http://192.168.1.207 \
   --from-literal=SONARR_API_KEY=... \
   --from-literal=PLEX_OWNER_TOKEN=... \
-  --from-literal=PLEX_MACHINE_IDENTIFIER=... \
   --from-literal=PLEX_CLIENT_ID=plex-issue-reporter \
   --from-literal=DISCORD_WEBHOOK_URL=... \
   --from-literal=SESSION_SECRET="$(openssl rand -hex 32)"

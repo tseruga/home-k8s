@@ -36,6 +36,30 @@ describe('sonarr client', () => {
     expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://s/api/v3/history/failed/800' && i.method === 'POST')).toBe(true);
   });
 
+  it('marks a bad episode grabbed-history failed with paged history response', async () => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
+      if (url.startsWith('http://s/api/v3/history')) {
+        return json({ page: 1, totalRecords: 1, records: [{ id: 802, eventType: 'grabbed' }] });
+      }
+      return json({});
+    });
+    const c = createSonarrClient({ baseUrl: 'http://s', apiKey: 'k', fetchFn: fetchFn as unknown as typeof fetch });
+    expect(await c.remediateEpisode(badEp)).toBe('blocklist-and-regrab');
+    expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://s/api/v3/history/failed/802' && i.method === 'POST')).toBe(true);
+  });
+
+  it('falls back to delete file + search when no grabbed record exists', async () => {
+    const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
+      if (url.startsWith('http://s/api/v3/history')) return json({ records: [] });
+      return json({});
+    });
+    const c = createSonarrClient({ baseUrl: 'http://s', apiKey: 'k', fetchFn: fetchFn as unknown as typeof fetch });
+    expect(await c.remediateEpisode(badEp)).toBe('blocklist-and-regrab');
+    expect(fetchFn.mock.calls.some(([u, i]) => u === 'http://s/api/v3/episodefile/77' && i.method === 'DELETE')).toBe(true);
+    const searchCall = fetchFn.mock.calls.find(([u]) => u === 'http://s/api/v3/command')!;
+    expect(JSON.parse(searchCall[1].body as string)).toEqual({ name: 'EpisodeSearch', episodeIds: [11] });
+  });
+
   it('remediates a whole season then fires SeasonSearch', async () => {
     const fetchFn = vi.fn(async (url: string, init: RequestInit) => {
       if (url.startsWith('http://s/api/v3/episode?seriesId')) return json([missingEp, badEp]);

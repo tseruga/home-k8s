@@ -4,7 +4,6 @@ export type AppConfig = {
   sonarrUrl: string;
   sonarrApiKey: string;
   plexOwnerToken: string;
-  plexMachineIdentifier: string;
   plexClientId: string;
   publicAppUrl: string;
   discordWebhookUrl: string;
@@ -17,7 +16,6 @@ const REQUIRED: Array<[keyof AppConfig, string]> = [
   ['sonarrUrl', 'SONARR_URL'],
   ['sonarrApiKey', 'SONARR_API_KEY'],
   ['plexOwnerToken', 'PLEX_OWNER_TOKEN'],
-  ['plexMachineIdentifier', 'PLEX_MACHINE_IDENTIFIER'],
   ['plexClientId', 'PLEX_CLIENT_ID'],
   ['publicAppUrl', 'PUBLIC_APP_URL'],
   ['discordWebhookUrl', 'DISCORD_WEBHOOK_URL'],

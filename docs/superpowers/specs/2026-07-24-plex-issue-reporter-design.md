@@ -69,7 +69,6 @@ currently commits env values in cleartext; nothing else in the cluster uses
 | `RADARR_URL` / `RADARR_API_KEY` | Radarr proxy |
 | `SONARR_URL` / `SONARR_API_KEY` | Sonarr proxy |
 | `PLEX_OWNER_TOKEN` | List accounts the library is shared with (whitelist) |
-| `PLEX_MACHINE_IDENTIFIER` | Identify this server when listing shared users |
 | `PLEX_CLIENT_ID` | Stable client identifier for the Plex OAuth flow |
 | `PUBLIC_APP_URL` | `https://issues.tseruga.com` (OAuth forward URL) |
 | `DISCORD_WEBHOOK_URL` | Report notifications |
@@ -205,7 +204,7 @@ with secrets supplied via environment variables:
   read via `$env/dynamic/private` (never `$env/static/public`), so they stay
   server-side exactly as in production.
 - **Same env var names** as the k8s Secret (`RADARR_URL`, `RADARR_API_KEY`,
-  `SONARR_URL`, `SONARR_API_KEY`, `PLEX_OWNER_TOKEN`, `PLEX_MACHINE_IDENTIFIER`,
+  `SONARR_URL`, `SONARR_API_KEY`, `PLEX_OWNER_TOKEN`,
   `PLEX_CLIENT_ID`, `PUBLIC_APP_URL`, `DISCORD_WEBHOOK_URL`, `SESSION_SECRET`),
   so local and cluster behavior match. Locally, set
   `PUBLIC_APP_URL=http://localhost:5173` so the Plex OAuth `forwardUrl` returns

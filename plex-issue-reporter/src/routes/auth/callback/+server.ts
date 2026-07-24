@@ -13,8 +13,11 @@ export const GET: RequestHandler = async ({ cookies }) => {
   if (!authToken) throw redirect(302, '/login');
 
   const user = await getUser(authToken, cfg.plexClientId);
-  const allowed = await listAllowedUserIds(cfg.plexOwnerToken, cfg.plexClientId);
-  if (!isWhitelisted(user.id, allowed)) throw redirect(302, '/denied');
+  const [allowed, owner] = await Promise.all([
+    listAllowedUserIds(cfg.plexOwnerToken, cfg.plexClientId),
+    getUser(cfg.plexOwnerToken, cfg.plexClientId)
+  ]);
+  if (!isWhitelisted(user.id, allowed, owner.id)) throw redirect(302, '/denied');
 
   const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
   const token = signSession({ plexUserId: user.id, username: user.username, exp }, cfg.sessionSecret);
