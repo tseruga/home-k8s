@@ -43,13 +43,25 @@ export async function getUser(authToken: string, clientId: string, fetchFn: type
   return { id: body.id, username: body.username, email: body.email };
 }
 
+// Plex retired /api/v2/friends — it now answers 410 Gone even unauthenticated.
+// /api/users/ is the live replacement (it is what python-plexapi reads) and
+// covers both friends and home users, which is the right set for a whitelist.
+// Unlike the v2 endpoints it ignores Accept and always answers XML, so the ids
+// are pulled straight out of the markup rather than through an XML dependency.
 export async function listAllowedUserIds(ownerToken: string, clientId: string, fetchFn: typeof fetch = fetch): Promise<Set<number>> {
-  const res = await fetchFn('https://plex.tv/api/v2/friends', {
-    headers: { ...PLEX_HEADERS(clientId), 'X-Plex-Token': ownerToken }
+  const res = await fetchFn('https://plex.tv/api/users/', {
+    headers: { ...PLEX_HEADERS(clientId), Accept: 'application/xml', 'X-Plex-Token': ownerToken }
   });
   if (!res.ok) throw new Error(`Plex listAllowedUserIds failed: ${res.status}`);
-  const body = (await res.json()) as Array<{ id: number }>;
-  return new Set(body.map((u) => u.id));
+  const xml = await res.text();
+  const ids = new Set<number>();
+  // Match the <User ...> open tags only: each one nests a <Server id="..."> that
+  // must not be mistaken for an account id.
+  for (const [tag] of xml.matchAll(/<User\s[^>]*>/g)) {
+    const id = /\sid="(\d+)"/.exec(tag);
+    if (id) ids.add(Number(id[1]));
+  }
+  return ids;
 }
 
 export function isWhitelisted(userId: number, allowed: Set<number>, ownerId?: number): boolean {
