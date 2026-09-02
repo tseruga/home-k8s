@@ -16,8 +16,8 @@ spec:
   interval: 1m0s
   values:
     image:
-      repository: ghcr.io/onedr0p/plex
-      tag: 1.41.5.9522
+      repository: ghcr.io/home-operations/plex
+      tag: 1.43.3.10896
     service:
       main:
         type: LoadBalancer
@@ -25,7 +25,6 @@ spec:
         externalTrafficPolicy: Local
     env:
       ALLOWED_NETWORKS: 192.168.0.1/8
-      PLEX_CLAIM: claim-AUQjT3o4wumxyvHsPuts
     persistence:
       content:
         enabled: true
