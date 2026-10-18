@@ -26,7 +26,7 @@ spec:
           http:
             port: 8111
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.221
+        loadBalancerIP: 192.168.68.221
         externalTrafficPolicy: Local
     persistence:
       config:

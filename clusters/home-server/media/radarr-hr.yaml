@@ -24,7 +24,7 @@ spec:
     service:
       main:
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.211
+        loadBalancerIP: 192.168.68.211
         externalTrafficPolicy: Local
     persistence:
       content:

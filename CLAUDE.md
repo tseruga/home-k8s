@@ -39,8 +39,8 @@ Deployed as a static site (SvelteKit adapter-static) served by nginx. No backend
 
 | Namespace | Key Services |
 |-----------|-------------|
-| `media` | Plex (192.168.1.210), Radarr, Sonarr, Jellyfin, Jackett, Deluge, Bazarr, Overseerr, Grocy, Mealie, Tautulli, ErsatzTV (192.168.1.223), plex-meta-manager, plex-movie-randomizer |
-| `ai` | AnythingLLM (192.168.1.217) |
+| `media` | Plex (192.168.68.210), Radarr, Sonarr, Jellyfin, Jackett, Deluge, Bazarr, Overseerr, Grocy, Mealie, Tautulli, ErsatzTV (192.168.68.223), plex-meta-manager, plex-movie-randomizer |
+| `ai` | AnythingLLM (192.168.68.217) |
 | `downloads` | qBittorrent |
 | `networking` | ingress-nginx, cert-manager (Let's Encrypt), CNPG |
 | `assetto` | Assetto Server Manager |
@@ -76,6 +76,6 @@ Storage class is `manual` (no dynamic provisioning).
 ## Key Patterns
 
 - HelmRelease files are named `*-hr.yaml`
-- LoadBalancer services use manually assigned IPs in the 192.168.1.x range
+- LoadBalancer services use manually assigned IPs in the 192.168.68.x range (Deco /22; keep .200-.255 out of DHCP)
 - All services should include liveness/readiness probes
 - Secrets live in `infra/secrets/` (not committed)

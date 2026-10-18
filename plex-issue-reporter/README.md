@@ -17,7 +17,7 @@ Built with SvelteKit (Svelte 5, `adapter-node`) + Tailwind + Bits UI. Stateless
 
 - **Node 20+** and npm.
 - For anything that talks to your services (live dev), the machine must be on the
-  home LAN so it can reach Radarr (`192.168.1.211`) and Sonarr (`192.168.1.207`)
+  home LAN so it can reach Radarr (`192.168.68.211`) and Sonarr (`192.168.68.207`)
   directly. The offline tests below need none of this.
 
 ```bash

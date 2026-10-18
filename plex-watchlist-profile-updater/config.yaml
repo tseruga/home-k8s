@@ -7,7 +7,7 @@ plex:
 
 # Radarr server configuration  
 radarr:
-  url: "http://192.168.1.211:7878"   # Your Radarr server URL
+  url: "http://192.168.68.211:7878"   # Your Radarr server URL
   api_key: "xxx" # Get this from Radarr settings
 
 # Target quality profile name to upgrade movies to

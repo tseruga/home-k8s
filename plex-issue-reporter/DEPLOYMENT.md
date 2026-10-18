@@ -6,9 +6,9 @@ No CI — build/push manually, then commit for Flux to reconcile.
 
 ```bash
 kubectl create secret generic plex-issue-reporter-secrets -n media \
-  --from-literal=RADARR_URL=http://192.168.1.211 \
+  --from-literal=RADARR_URL=http://192.168.68.211 \
   --from-literal=RADARR_API_KEY=... \
-  --from-literal=SONARR_URL=http://192.168.1.207 \
+  --from-literal=SONARR_URL=http://192.168.68.207 \
   --from-literal=SONARR_API_KEY=... \
   --from-literal=PLEX_OWNER_TOKEN=... \
   --from-literal=PLEX_CLIENT_ID=plex-issue-reporter \

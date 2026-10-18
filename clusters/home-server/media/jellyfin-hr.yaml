@@ -22,7 +22,7 @@ spec:
     service:
       main:
         type: LoadBalancer
-        loadBalancerIP: 192.168.1.222
+        loadBalancerIP: 192.168.68.222
         externalTrafficPolicy: Local
     persistence:
       config:
