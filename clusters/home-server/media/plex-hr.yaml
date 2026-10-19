@@ -17,7 +17,7 @@ spec:
   values:
     image:
       repository: ghcr.io/home-operations/plex
-      tag: 1.43.3.10896
+      tag: 1.43.4.10903
     service:
       main:
         type: LoadBalancer
