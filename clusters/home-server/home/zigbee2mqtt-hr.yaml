@@ -1,0 +1,114 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: zigbee2mqtt
+  namespace: home
+spec:
+  dependsOn:
+    - name: mosquitto
+  chart:
+    spec:
+      chart: app-template
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+      version: 3.7.3
+  interval: 5m
+  values:
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: home-server
+    controllers:
+      zigbee2mqtt:
+        strategy: Recreate
+        initContainers:
+          # Seed a minimal config on first boot only; after that Z2M owns the file
+          # (it writes network keys / device list into it).
+          seed-config:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command:
+              - sh
+              - -c
+              - |
+                [ -f /app/data/configuration.yaml ] && exit 0
+                cat > /app/data/configuration.yaml <<'CFG'
+                homeassistant:
+                  enabled: true
+                frontend:
+                  enabled: true
+                  port: 8080
+                mqtt:
+                  base_topic: zigbee2mqtt
+                  server: mqtt://mosquitto.home.svc.cluster.local:1883
+                serial:
+                  port: /dev/zigbee
+                  adapter: ember
+                  baudrate: 115200
+                  rtscts: false
+                advanced:
+                  network_key: GENERATE
+                  pan_id: GENERATE
+                  ext_pan_id: GENERATE
+                  log_output:
+                    - console
+                CFG
+        containers:
+          app:
+            image:
+              repository: ghcr.io/koenkk/zigbee2mqtt
+              tag: 2.14.2
+            env:
+              TZ: America/Chicago
+            securityContext:
+              privileged: true
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  initialDelaySeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 8080
+                  failureThreshold: 30
+                  periodSeconds: 10
+    service:
+      app:
+        controller: zigbee2mqtt
+        type: LoadBalancer
+        loadBalancerIP: 192.168.68.226
+        ports:
+          http:
+            port: 8080
+    persistence:
+      data:
+        type: persistentVolumeClaim
+        storageClass: microk8s-hostpath
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /app/data
+      zigbee-dongle:
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-SONOFF_SONOFF_Dongle_Plus_MG24_d2303578308cf0118d7926b9d9065118-if00-port0
+        hostPathType: CharDevice
+        advancedMounts:
+          zigbee2mqtt:
+            app:
+              - path: /dev/zigbee

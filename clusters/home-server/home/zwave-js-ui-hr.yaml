@@ -1,0 +1,84 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: zwave-js-ui
+  namespace: home
+spec:
+  chart:
+    spec:
+      chart: app-template
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+      version: 3.7.3
+  interval: 5m
+  values:
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: home-server
+    controllers:
+      zwave-js-ui:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/zwave-js/zwave-js-ui
+              tag: 11.24.3
+            env:
+              TZ: America/Chicago
+            securityContext:
+              privileged: true
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8091
+                  initialDelaySeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8091
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8091
+                  failureThreshold: 30
+                  periodSeconds: 10
+    service:
+      app:
+        controller: zwave-js-ui
+        type: LoadBalancer
+        loadBalancerIP: 192.168.68.227
+        ports:
+          http:
+            port: 8091
+          websocket:
+            port: 3000
+    persistence:
+      store:
+        type: persistentVolumeClaim
+        storageClass: microk8s-hostpath
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /usr/src/app/store
+      zwave-dongle:
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-SONOFF_SONOFF_ZWave_Dongle-PZG23_f07e33e0b575f011a98cad2f1045c30f-if00-port0
+        hostPathType: CharDevice
+        advancedMounts:
+          zwave-js-ui:
+            app:
+              - path: /dev/zwave

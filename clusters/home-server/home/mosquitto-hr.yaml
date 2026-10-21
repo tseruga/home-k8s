@@ -1,0 +1,69 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: mosquitto
+  namespace: home
+spec:
+  chart:
+    spec:
+      chart: app-template
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+      version: 3.7.3
+  interval: 5m
+  values:
+    controllers:
+      mosquitto:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: eclipse-mosquitto
+              tag: 2.0.22
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 1883
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    port: 1883
+    service:
+      app:
+        controller: mosquitto
+        type: ClusterIP
+        ports:
+          mqtt:
+            port: 1883
+    configMaps:
+      config:
+        data:
+          mosquitto.conf: |
+            listener 1883
+            allow_anonymous true
+            persistence true
+            persistence_location /mosquitto/data/
+            log_dest stdout
+    persistence:
+      config:
+        type: configMap
+        identifier: config
+        globalMounts:
+          - path: /mosquitto/config/mosquitto.conf
+            subPath: mosquitto.conf
+      data:
+        type: persistentVolumeClaim
+        storageClass: microk8s-hostpath
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /mosquitto/data

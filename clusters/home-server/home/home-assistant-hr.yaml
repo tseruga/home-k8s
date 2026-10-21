@@ -1,0 +1,77 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: home-assistant
+  namespace: home
+spec:
+  chart:
+    spec:
+      chart: app-template
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+      version: 3.7.3
+  interval: 5m
+  values:
+    defaultPodOptions:
+      # Host networking so mDNS/SSDP discovery (Chromecast, HomeKit, TVs) works.
+      # UI is served on the node IP: http://192.168.68.200:8123
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: home-server
+    controllers:
+      home-assistant:
+        strategy: Recreate
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-assistant/home-assistant
+              tag: 2026.10.2
+            env:
+              TZ: America/Chicago
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8123
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8123
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8123
+                  failureThreshold: 60
+                  periodSeconds: 10
+    service:
+      app:
+        controller: home-assistant
+        type: ClusterIP
+        ports:
+          http:
+            port: 8123
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: microk8s-hostpath
+        accessMode: ReadWriteOnce
+        size: 5Gi
+        retain: true
+        globalMounts:
+          - path: /config
