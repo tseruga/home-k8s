@@ -20,6 +20,10 @@ spec:
       # UI is served on the node IP: http://192.168.68.200:8123
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      annotations:
+        # containerd's default AppArmor profile has no dbus rules, so the host
+        # dbus-daemon drops the connection and Bluetooth (BlueZ) can't be reached
+        container.apparmor.security.beta.kubernetes.io/app: unconfined
       nodeSelector:
         kubernetes.io/hostname: home-server
     controllers:
