@@ -32,6 +32,12 @@ spec:
               tag: 2026.10.2
             env:
               TZ: America/Chicago
+            securityContext:
+              # Required by the Bluetooth integration to manage hci0
+              capabilities:
+                add:
+                  - NET_ADMIN
+                  - NET_RAW
             probes:
               liveness:
                 enabled: true
