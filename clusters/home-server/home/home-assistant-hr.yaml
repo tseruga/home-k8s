@@ -75,3 +75,11 @@ spec:
         retain: true
         globalMounts:
           - path: /config
+      # Host D-Bus so the Bluetooth integration can talk to the host's BlueZ (AX200)
+      dbus:
+        type: hostPath
+        hostPath: /run/dbus
+        hostPathType: Directory
+        globalMounts:
+          - path: /run/dbus
+            readOnly: true

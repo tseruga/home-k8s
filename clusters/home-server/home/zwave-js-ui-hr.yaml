@@ -36,7 +36,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /health
+                    path: /health/
                     port: 8091
                   initialDelaySeconds: 30
               readiness:
@@ -44,14 +44,14 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /health
+                    path: /health/
                     port: 8091
               startup:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /health
+                    path: /health/
                     port: 8091
                   failureThreshold: 30
                   periodSeconds: 10
