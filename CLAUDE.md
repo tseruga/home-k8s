@@ -41,7 +41,7 @@ Deployed as a static site (SvelteKit adapter-static) served by nginx. No backend
 |-----------|-------------|
 | `media` | Plex (192.168.68.210), Radarr, Sonarr, Jellyfin, Jackett, Deluge, Bazarr, Overseerr, Grocy, Mealie, Tautulli, ErsatzTV (192.168.68.223), plex-meta-manager, plex-movie-randomizer |
 | `ai` | AnythingLLM (192.168.68.217) |
-| `home` | Home Assistant (hostNetwork, 192.168.68.200:8123), Zigbee2MQTT (192.168.68.226), Z-Wave JS UI (192.168.68.227), Mosquitto |
+| `home` | Home Assistant (hostNetwork, 192.168.68.200:8123), Zigbee2MQTT (192.168.68.226), Z-Wave JS UI (192.168.68.227), Mosquitto, Matter Server (hostNetwork, localhost:5580) |
 | `downloads` | qBittorrent |
 | `networking` | ingress-nginx, cert-manager (Let's Encrypt), CNPG |
 | `assetto` | Assetto Server Manager |

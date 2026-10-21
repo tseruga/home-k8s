@@ -1,0 +1,80 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: matter-server
+  namespace: home
+spec:
+  chart:
+    spec:
+      chart: app-template
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+      version: 3.7.3
+  interval: 5m
+  values:
+    defaultPodOptions:
+      # Matter relies on IPv6 link-local multicast on the LAN
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: home-server
+    controllers:
+      matter-server:
+        strategy: Recreate
+        initContainers:
+          # Image runs as 1000:1000; hostpath PVCs are created root-owned
+          fix-perms:
+            image:
+              repository: busybox
+              tag: 1.37.0
+            command: ["sh", "-c", "chown -R 1000:1000 /data"]
+            securityContext:
+              runAsUser: 0
+        containers:
+          app:
+            image:
+              repository: ghcr.io/matter-js/matterjs-server
+              tag: 1.4.0
+            env:
+              TZ: America/Chicago
+              PRIMARY_INTERFACE: enp0s31f6
+              # Unauthenticated API: keep it off the LAN. HA shares the host
+              # network and connects via ws://127.0.0.1:5580/ws
+              LISTEN_ADDRESS: 127.0.0.1
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    host: 127.0.0.1
+                    port: 5580
+                  periodSeconds: 30
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    host: 127.0.0.1
+                    port: 5580
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  tcpSocket:
+                    host: 127.0.0.1
+                    port: 5580
+                  failureThreshold: 90
+                  periodSeconds: 10
+    persistence:
+      data:
+        type: persistentVolumeClaim
+        storageClass: microk8s-hostpath
+        accessMode: ReadWriteOnce
+        size: 1Gi
+        retain: true
+        globalMounts:
+          - path: /data
